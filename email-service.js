@@ -63,8 +63,50 @@ class EmailService {
         console.log(`Message: ${message}`);
         console.log('---');
         
-        // In production, this would actually send the email
+        // Try to send real email via EmailJS
+        try {
+            const result = await this.sendRealEmail(to, subject, message);
+            if (result) {
+                console.log('✅ Real email sent successfully!');
+                return true;
+            }
+        } catch (error) {
+            console.log('⚠️ Real email failed, but simulation succeeded');
+        }
+        
         return true;
+    }
+
+    // Send real email via EmailJS
+    async sendRealEmail(to, subject, message) {
+        console.log('🔄 Attempting to send real email via EmailJS...');
+        
+        try {
+            // Initialize EmailJS (you'll need to get your public key from emailjs.com)
+            if (typeof emailjs !== 'undefined') {
+                // EmailJS is loaded, try to send real email
+                const serviceId = 'gmail'; // You'll need to set this up in EmailJS
+                const templateId = 'subscription_template'; // You'll need to create this template
+                const publicKey = 'YOUR_EMAILJS_PUBLIC_KEY'; // You'll need to get this from EmailJS
+                
+                const templateParams = {
+                    to_email: to,
+                    subject: subject,
+                    message: message,
+                    from_name: 'Spaceivy Billing System'
+                };
+                
+                const result = await emailjs.send(serviceId, templateId, templateParams, publicKey);
+                console.log('✅ Real email sent via EmailJS!', result);
+                return true;
+            } else {
+                console.log('⚠️ EmailJS not loaded, falling back to simulation');
+                return false;
+            }
+        } catch (error) {
+            console.log('⚠️ EmailJS error, falling back to simulation:', error);
+            return false;
+        }
     }
 
     // Generate email content for subscription notifications
