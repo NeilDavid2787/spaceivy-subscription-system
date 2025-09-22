@@ -238,7 +238,9 @@ class SubscriptionManager {
 
     getDaysUntilExpiry(startDate, duration) {
         const endDate = this.calculateEndDate(startDate, duration);
-        const timeDiff = endDate.getTime() - this.currentDate.getTime();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset to start of day
+        const timeDiff = endDate.getTime() - today.getTime();
         return Math.ceil(timeDiff / (1000 * 3600 * 24));
     }
 
@@ -452,13 +454,8 @@ class SubscriptionManager {
         
         const monthlyRevenue = this.subscriptions.reduce((total, sub) => {
             const daysUntilExpiry = this.getDaysUntilExpiry(sub.startDate, sub.duration);
-            // Only count subscriptions that started today or in the future
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const subscriptionStartDate = new Date(sub.startDate);
-            subscriptionStartDate.setHours(0, 0, 0, 0);
-            
-            return (daysUntilExpiry >= 0 && subscriptionStartDate >= today) ? total + sub.amount : total;
+            // Only count active subscriptions (not expired)
+            return (daysUntilExpiry >= 0) ? total + sub.amount : total;
         }, 0);
         
         const notificationsSent = this.notifications.length;
