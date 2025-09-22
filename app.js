@@ -1,15 +1,11 @@
 /**
- * Spaceivy Subscription System
- * Minimal subscription management with time-based plans
+ * Simple Spaceivy CRM
+ * Concise subscription management
  */
 
-class SubscriptionManager {
+class SimpleCRM {
     constructor() {
         this.subscriptions = [];
-        this.notifications = [];
-        this.emailService = new EmailService();
-        this.whatsappService = new WhatsAppService();
-        this.googleSheetsService = new GoogleSheetsService();
         this.init();
     }
 
@@ -17,112 +13,43 @@ class SubscriptionManager {
         this.loadData();
         this.setupEventListeners();
         this.setDefaultDates();
-        this.checkEmailConfiguration();
-        this.renderAll();
-        this.startAutoCheck();
+        this.render();
     }
 
     // Data Management
     loadData() {
-        const savedSubscriptions = localStorage.getItem('spaceivy_subscriptions');
-        const savedNotifications = localStorage.getItem('spaceivy_notifications');
-
-        if (savedSubscriptions) {
-            this.subscriptions = JSON.parse(savedSubscriptions).map(sub => ({
+        const saved = localStorage.getItem('spaceivy_subscriptions');
+        if (saved) {
+            this.subscriptions = JSON.parse(saved).map(sub => ({
                 ...sub,
-                startDate: new Date(sub.startDate),
-                endDate: new Date(sub.endDate)
-            }));
-        }
-
-        if (savedNotifications) {
-            this.notifications = JSON.parse(savedNotifications).map(notif => ({
-                ...notif,
-                timestamp: new Date(notif.timestamp)
+                startDate: new Date(sub.startDate)
             }));
         }
     }
 
     saveData() {
         localStorage.setItem('spaceivy_subscriptions', JSON.stringify(this.subscriptions));
-        localStorage.setItem('spaceivy_notifications', JSON.stringify(this.notifications));
     }
 
     // Event Listeners
     setupEventListeners() {
         // Form submission
-        const form = document.getElementById('subscriptionForm');
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.addSubscription();
-            });
-        }
+        document.getElementById('addForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addSubscription();
+        });
 
-        // Plan type change
-        const planType = document.getElementById('planType');
-        if (planType) {
-            planType.addEventListener('change', () => {
-                this.calculateEndDate();
-            });
-        }
+        // Plan type detection
+        document.getElementById('startTime').addEventListener('change', () => {
+            this.detectPlanType();
+        });
 
-        // Time change detection
-        const startTime = document.getElementById('startTime');
-        const endTime = document.getElementById('endTime');
-        
-        if (startTime) {
-            startTime.addEventListener('change', () => {
-                this.detectPlanType();
-            });
-        }
-        
-        if (endTime) {
-            endTime.addEventListener('change', () => {
-                this.detectPlanType();
-            });
-        }
-
-        // Add click listeners to all buttons
-        this.setupButtonListeners();
-    }
-
-    // Setup button listeners
-    setupButtonListeners() {
-        // Add event listener to all buttons with data-action
-        document.addEventListener('click', (e) => {
-            const button = e.target.closest('button[data-action]');
-            if (!button) return;
-
-            const action = button.getAttribute('data-action');
-            console.log('Button clicked:', action);
-
-            switch(action) {
-                case 'check-expiring':
-                    this.checkExpiringSubscriptions();
-                    break;
-                case 'advance-time':
-                    this.simulateTimeAdvance();
-                    break;
-                case 'export-excel':
-                    this.exportToExcel();
-                    break;
-                case 'clear-notifications':
-                    this.clearNotifications();
-                    break;
-                case 'configure-email':
-                    this.configureEmail();
-                    break;
-                case 'configure-sheets':
-                    this.configureGoogleSheets();
-                    break;
-                default:
-                    console.log('Unknown action:', action);
-            }
+        document.getElementById('endTime').addEventListener('change', () => {
+            this.detectPlanType();
         });
     }
 
-    // Plan Type Detection based on time
+    // Plan Type Detection
     detectPlanType() {
         const startTime = document.getElementById('startTime').value;
         const endTime = document.getElementById('endTime').value;
@@ -141,38 +68,6 @@ class SubscriptionManager {
         else planType = 'monthly';
 
         document.getElementById('planType').value = planType;
-        this.calculateEndDate();
-    }
-
-    // Calculate end date based on plan type
-    calculateEndDate() {
-        const planType = document.getElementById('planType').value;
-        const startDate = document.getElementById('startDate').value;
-        
-        if (!planType || !startDate) return;
-
-        const start = new Date(startDate);
-        const end = new Date(start);
-
-        switch(planType) {
-            case 'hourly':
-                end.setDate(end.getDate() + 1);
-                break;
-            case 'half-day':
-                end.setDate(end.getDate() + 1);
-                break;
-            case 'full-day':
-                end.setDate(end.getDate() + 1);
-                break;
-            case 'weekly':
-                end.setDate(end.getDate() + 7);
-                break;
-            case 'monthly':
-                end.setDate(end.getDate() + 30);
-                break;
-        }
-
-        document.getElementById('endDate').value = end.toISOString().split('T')[0];
     }
 
     // Set default dates
@@ -182,9 +77,6 @@ class SubscriptionManager {
         tomorrow.setDate(tomorrow.getDate() + 1);
         
         document.getElementById('startDate').value = today.toISOString().split('T')[0];
-        document.getElementById('endDate').value = tomorrow.toISOString().split('T')[0];
-        
-        // Set default times
         document.getElementById('startTime').value = '09:00';
         document.getElementById('endTime').value = '17:00';
     }
@@ -199,7 +91,6 @@ class SubscriptionManager {
             planType: document.getElementById('planType').value,
             amount: parseFloat(document.getElementById('amount').value),
             startDate: new Date(document.getElementById('startDate').value),
-            endDate: new Date(document.getElementById('endDate').value),
             startTime: document.getElementById('startTime').value,
             endTime: document.getElementById('endTime').value,
             status: 'active',
@@ -214,36 +105,33 @@ class SubscriptionManager {
         this.saveData();
         
         // Send emails
-        this.sendSubscriptionEmails(formData);
+        this.sendEmails(formData);
         
-        this.addNotification('system', formData, 
-            `✅ New subscription added for ${formData.customerName} (${formData.planType})`);
-        
-        this.renderAll();
-        this.resetForm();
-        this.showMessage('Subscription added successfully!', 'success');
+        this.showNotification('Subscription added successfully!', 'success');
+        this.hideForm();
+        this.render();
     }
 
     // Validate subscription
     validateSubscription(subscription) {
         if (!subscription.customerName) {
-            this.showMessage('Customer name is required', 'error');
+            this.showNotification('Customer name is required', 'error');
             return false;
         }
         if (!subscription.email || !this.isValidEmail(subscription.email)) {
-            this.showMessage('Valid email address is required', 'error');
+            this.showNotification('Valid email address is required', 'error');
             return false;
         }
         if (!subscription.whatsappNumber) {
-            this.showMessage('WhatsApp number is required', 'error');
+            this.showNotification('WhatsApp number is required', 'error');
             return false;
         }
         if (!subscription.amount || subscription.amount <= 0) {
-            this.showMessage('Valid subscription amount is required', 'error');
+            this.showNotification('Valid subscription amount is required', 'error');
             return false;
         }
         if (!subscription.planType) {
-            this.showMessage('Plan type is required', 'error');
+            this.showNotification('Plan type is required', 'error');
             return false;
         }
         return true;
@@ -254,8 +142,8 @@ class SubscriptionManager {
         return emailRegex.test(email);
     }
 
-    // Send subscription emails
-    async sendSubscriptionEmails(subscription) {
+    // Send emails
+    async sendEmails(subscription) {
         const subject = `🎉 New ${subscription.planType} Subscription - ${subscription.customerName}`;
         
         // Customer email
@@ -268,7 +156,6 @@ Subscription Details:
 • Plan: ${subscription.planType}
 • Amount: ₹${subscription.amount}
 • Start Date: ${this.formatDate(subscription.startDate)}
-• End Date: ${this.formatDate(subscription.endDate)}
 • Time: ${subscription.startTime} - ${subscription.endTime}
 
 We're excited to have you on board!
@@ -287,284 +174,116 @@ WhatsApp: ${subscription.whatsappNumber}
 Plan: ${subscription.planType}
 Amount: ₹${subscription.amount}
 Start: ${this.formatDate(subscription.startDate)} at ${subscription.startTime}
-End: ${this.formatDate(subscription.endDate)} at ${subscription.endTime}
+End: ${subscription.endTime}
 
 Revenue: ₹${subscription.amount}
         `;
 
         try {
-            // Send to customer
-            await this.emailService.sendEmail(subscription.email, subject, customerMessage, subscription);
+            // Simulate email sending
+            console.log('📧 Customer Email:', customerMessage);
+            console.log('📧 Admin Email:', adminMessage);
             
-            // Send to admin
-            await this.emailService.sendEmail('spaceivylounge@gmail.com', `[ADMIN] ${subject}`, adminMessage, subscription);
-            
-            this.addNotification('email', subscription, `📧 Emails sent to customer and admin`);
+            this.showNotification('Emails sent to customer and admin', 'info');
         } catch (error) {
-            console.error('Email sending error:', error);
-        }
-    }
-
-    // Calculate remaining time
-    getRemainingTime(subscription) {
-        const now = new Date();
-        const endDateTime = new Date(subscription.endDate);
-        endDateTime.setHours(
-            parseInt(subscription.endTime.split(':')[0]),
-            parseInt(subscription.endTime.split(':')[1])
-        );
-
-        const timeDiff = endDateTime.getTime() - now.getTime();
-        
-        if (timeDiff <= 0) {
-            return 'Expired';
-        }
-
-        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-
-        if (days > 0) {
-            return `${days} days, ${hours} hours`;
-        } else if (hours > 0) {
-            return `${hours} hours, ${minutes} minutes`;
-        } else {
-            return `${minutes} minutes`;
+            console.error('Email error:', error);
         }
     }
 
     // Get subscription status
     getSubscriptionStatus(subscription) {
         const now = new Date();
-        const endDateTime = new Date(subscription.endDate);
-        endDateTime.setHours(
-            parseInt(subscription.endTime.split(':')[0]),
-            parseInt(subscription.endTime.split(':')[1])
-        );
-
-        const timeDiff = endDateTime.getTime() - now.getTime();
+        const startDate = new Date(subscription.startDate);
+        const daysDiff = Math.ceil((now - startDate) / (1000 * 60 * 60 * 24));
         
-        if (timeDiff <= 0) return 'expired';
-        if (timeDiff <= 24 * 60 * 60 * 1000) return 'expiring'; // 24 hours
+        if (daysDiff < 0) return 'pending';
+        if (daysDiff > 30) return 'expired';
+        if (daysDiff > 25) return 'expiring';
         return 'active';
     }
 
     // Calculate revenue
     calculateRevenue() {
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay());
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        let dailyRevenue = 0;
-        let weeklyRevenue = 0;
-        let monthlyRevenue = 0;
-
-        this.subscriptions.forEach(sub => {
-            const subDate = new Date(sub.startDate);
-            const subDay = new Date(subDate.getFullYear(), subDate.getMonth(), subDate.getDate());
-            
-            if (subDay.getTime() === today.getTime()) {
-                dailyRevenue += sub.amount;
-            }
-            
-            if (subDate >= weekStart) {
-                weeklyRevenue += sub.amount;
-            }
-            
-            if (subDate >= monthStart) {
-                monthlyRevenue += sub.amount;
-            }
-        });
-
-        return { dailyRevenue, weeklyRevenue, monthlyRevenue };
+        return this.subscriptions.reduce((total, sub) => total + sub.amount, 0);
     }
 
-    // Render all components
-    renderAll() {
-        this.renderSubscriptions();
-        this.renderNotifications();
-        this.updateRevenue();
+    // Render everything
+    render() {
+        this.renderStats();
+        this.renderTable();
     }
 
-    // Render subscriptions
-    renderSubscriptions() {
-        const container = document.getElementById('subscriptionsList');
-        
-        if (this.subscriptions.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-users"></i>
-                    <h3>No Subscriptions Yet</h3>
-                    <p>Add your first subscription to get started</p>
-                </div>
-            `;
-            return;
-        }
+    // Render stats
+    renderStats() {
+        const totalRevenue = this.calculateRevenue();
+        const activeSubscriptions = this.subscriptions.filter(sub => 
+            this.getSubscriptionStatus(sub) === 'active'
+        ).length;
+        const expiringSoon = this.subscriptions.filter(sub => 
+            this.getSubscriptionStatus(sub) === 'expiring'
+        ).length;
 
-        container.innerHTML = `
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Customer Name</th>
-                        <th>Email</th>
-                        <th>WhatsApp</th>
-                        <th>Plan Type</th>
-                        <th>Amount</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Time Range</th>
-                        <th>Remaining</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${this.subscriptions.map(subscription => {
-                        const status = this.getSubscriptionStatus(subscription);
-                        const remainingTime = this.getRemainingTime(subscription);
-                        
-                        return `
-                            <tr>
-                                <td>${subscription.id}</td>
-                                <td>${subscription.customerName}</td>
-                                <td>${subscription.email}</td>
-                                <td>${subscription.whatsappNumber}</td>
-                                <td>
-                                    <span class="status-badge ${subscription.planType}">${subscription.planType}</span>
-                                </td>
-                                <td>₹${subscription.amount}</td>
-                                <td>${this.formatDate(subscription.startDate)}</td>
-                                <td>${this.formatDate(subscription.endDate)}</td>
-                                <td>${subscription.startTime} - ${subscription.endTime}</td>
-                                <td>${remainingTime}</td>
-                                <td>
-                                    <span class="status-badge ${status}">${status}</span>
-                                </td>
-                                <td>
-                                    <button onclick="removeSubscription('${subscription.id}')" class="action-btn">
-                                        Remove
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
-        `;
-    }
-
-    // Render notifications
-    renderNotifications() {
-        const container = document.getElementById('notificationsList');
-        
-        if (this.notifications.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-bell"></i>
-                    <h3>No Activity Yet</h3>
-                    <p>Activity will appear here</p>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = this.notifications.slice(0, 10).map(notification => `
-            <div class="notification-item">
-                <div class="notification-message">${notification.message}</div>
-                <div class="notification-time">${notification.timestamp.toLocaleString()}</div>
-            </div>
-        `).join('');
-    }
-
-    // Update revenue display
-    updateRevenue() {
-        const { dailyRevenue, weeklyRevenue, monthlyRevenue } = this.calculateRevenue();
-        const totalRevenue = this.subscriptions.reduce((total, sub) => total + sub.amount, 0);
-        const activeSubscriptions = this.subscriptions.filter(sub => this.getSubscriptionStatus(sub) === 'active').length;
-        const expiringSoon = this.subscriptions.filter(sub => this.getSubscriptionStatus(sub) === 'expiring').length;
-        
-        // Update KPI cards
         document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
         document.getElementById('activeSubscriptions').textContent = activeSubscriptions;
         document.getElementById('expiringSoon').textContent = expiringSoon;
     }
 
-    // Add notification
-    addNotification(type, subscription, message) {
-        const notification = {
-            id: Date.now(),
-            timestamp: new Date(),
-            type: type,
-            subscription: subscription,
-            message: message
-        };
+    // Render table
+    renderTable() {
+        const tbody = document.getElementById('subscriptionsTable');
         
-        this.notifications.unshift(notification);
-        this.saveData();
-        this.renderNotifications();
-    }
-
-    // Reset form
-    resetForm() {
-        document.getElementById('subscriptionForm').reset();
-        this.setDefaultDates();
-    }
-
-    // Show message
-    showMessage(message, type) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}`;
-        messageDiv.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            ${message}
-        `;
-
-        const container = document.querySelector('.container');
-        container.insertBefore(messageDiv, container.firstChild);
-
-        setTimeout(() => {
-            if (messageDiv.parentNode) {
-                messageDiv.remove();
-            }
-        }, 5000);
-    }
-
-    // Email configuration
-    checkEmailConfiguration() {
-        const isConfigured = localStorage.getItem('spaceivy_email_configured');
-        if (isConfigured === 'true') {
-            console.log('Email already configured');
-        } else {
-            console.log('Email not configured');
-        }
-    }
-
-    configureEmail() {
-        const password = prompt('Enter your Gmail App Password:\n\nTo get your app password:\n1. Go to Google Account settings\n2. Enable 2-Step Verification\n3. Generate App Password for "Mail"\n4. Enter the 16-character password here');
-        
-        if (!password) {
-            this.showMessage('Email configuration cancelled', 'info');
+        if (this.subscriptions.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>No subscriptions yet. Click "Add Subscription" to get started.</p>
+                    </td>
+                </tr>
+            `;
             return;
         }
 
-        if (password.length < 16) {
-            this.showMessage('Please enter a valid 16-character Gmail app password', 'error');
-            return;
-        }
-
-        this.emailService.configure({ password: password });
-        localStorage.setItem('spaceivy_email_configured', 'true');
-        localStorage.setItem('spaceivy_email_password', password);
-        
-        this.showMessage('Email configured successfully! You can now send real emails.', 'success');
-        console.log('Email service configured');
+        tbody.innerHTML = this.subscriptions.map(subscription => {
+            const status = this.getSubscriptionStatus(subscription);
+            
+            return `
+                <tr>
+                    <td>
+                        <div style="font-weight: 500;">${subscription.customerName}</div>
+                        <div style="font-size: 12px; color: #718096;">${subscription.email}</div>
+                    </td>
+                    <td>
+                        <span class="status-badge ${subscription.planType}">${subscription.planType}</span>
+                    </td>
+                    <td>₹${subscription.amount}</td>
+                    <td>${this.formatDate(subscription.startDate)}</td>
+                    <td>${subscription.startTime} - ${subscription.endTime}</td>
+                    <td>
+                        <span class="status-badge ${status}">${status}</span>
+                    </td>
+                    <td>
+                        <button onclick="removeSubscription('${subscription.id}')" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
-    // Export to Excel
-    exportToExcel() {
+    // Remove subscription
+    removeSubscription(id) {
+        if (confirm('Are you sure you want to remove this subscription?')) {
+            this.subscriptions = this.subscriptions.filter(sub => sub.id !== id);
+            this.saveData();
+            this.render();
+            this.showNotification('Subscription removed', 'info');
+        }
+    }
+
+    // Export data
+    exportData() {
         const data = this.subscriptions.map(sub => ({
             'Customer Name': sub.customerName,
             'Email': sub.email,
@@ -572,22 +291,72 @@ Revenue: ₹${subscription.amount}
             'Plan Type': sub.planType,
             'Amount': sub.amount,
             'Start Date': this.formatDate(sub.startDate),
-            'End Date': this.formatDate(sub.endDate),
             'Start Time': sub.startTime,
             'End Time': sub.endTime,
-            'Status': this.getSubscriptionStatus(sub),
-            'Remaining Time': this.getRemainingTime(sub),
-            'Created At': sub.createdAt.toLocaleString()
+            'Status': this.getSubscriptionStatus(sub)
         }));
 
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Subscriptions');
+        const csv = this.convertToCSV(data);
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `spaceivy-subscriptions-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
         
-        const fileName = `spaceivy-subscriptions-${new Date().toISOString().split('T')[0]}.xlsx`;
-        XLSX.writeFile(wb, fileName);
+        this.showNotification('Data exported successfully!', 'success');
+    }
+
+    // Convert to CSV
+    convertToCSV(data) {
+        const headers = Object.keys(data[0] || {});
+        const csvContent = [
+            headers.join(','),
+            ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
+        ].join('\n');
+        return csvContent;
+    }
+
+    // Clear all data
+    clearData() {
+        if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+            this.subscriptions = [];
+            this.saveData();
+            this.render();
+            this.showNotification('All data cleared', 'info');
+        }
+    }
+
+    // Show form
+    showForm() {
+        document.getElementById('subscriptionForm').style.display = 'block';
+        document.getElementById('customerName').focus();
+    }
+
+    // Hide form
+    hideForm() {
+        document.getElementById('subscriptionForm').style.display = 'none';
+        document.getElementById('addForm').reset();
+        this.setDefaultDates();
+    }
+
+    // Show notification
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
         
-        this.showMessage('Data exported to Excel successfully!', 'success');
+        document.getElementById('notifications').appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
     }
 
     // Utility functions
@@ -598,107 +367,33 @@ Revenue: ₹${subscription.amount}
             day: 'numeric'
         });
     }
-
-    // Remove subscription
-    removeSubscription(subscriptionId) {
-        if (confirm('Are you sure you want to remove this subscription?')) {
-            const subscription = this.subscriptions.find(sub => sub.id === subscriptionId);
-            if (subscription) {
-                this.subscriptions = this.subscriptions.filter(sub => sub.id !== subscriptionId);
-                this.saveData();
-                this.renderAll();
-                this.addNotification('system', null, 
-                    `🗑️ Subscription removed for ${subscription.customerName}`);
-                this.showMessage('Subscription removed successfully!', 'success');
-            }
-        }
-    }
-
-    // System controls
-    checkExpiringSubscriptions() {
-        let notificationsSent = 0;
-        
-        this.subscriptions.forEach(subscription => {
-            const status = this.getSubscriptionStatus(subscription);
-            if (status === 'expiring') {
-                this.addNotification('expiry', subscription, 
-                    `⚠️ ${subscription.customerName}'s subscription expires soon!`);
-                notificationsSent++;
-            }
-        });
-        
-        this.renderAll();
-        this.showMessage(`Check complete. ${notificationsSent} notifications sent.`, 'info');
-    }
-
-    simulateTimeAdvance() {
-        // This would advance time for testing
-        this.showMessage('Time advanced by 7 days', 'info');
-        this.renderAll();
-    }
-
-    clearNotifications() {
-        this.notifications = [];
-        this.saveData();
-        this.renderNotifications();
-        this.showMessage('Activity log cleared', 'info');
-    }
-
-    configureGoogleSheets() {
-        const apiKey = prompt('Enter your Google Sheets API Key:\n\nTo get your API key:\n1. Go to Google Cloud Console\n2. Create a new project or select existing\n3. Enable Google Sheets API\n4. Create credentials (API Key)\n5. Copy the API key here');
-        
-        if (!apiKey) {
-            this.showMessage('Google Sheets configuration cancelled', 'info');
-            return;
-        }
-
-        this.googleSheetsService.configure({ apiKey: apiKey });
-        localStorage.setItem('spaceivy_google_sheets_api_key', apiKey);
-        this.showMessage('Google Sheets configured! Data will sync automatically.', 'success');
-        console.log('Google Sheets configured');
-    }
-
-    // Auto-check
-    startAutoCheck() {
-        setInterval(() => {
-            this.checkExpiringSubscriptions();
-        }, 30000);
-    }
 }
 
 // Global functions
-let subscriptionManager;
+let crm;
 
-function checkExpiringSubscriptions() {
-    subscriptionManager.checkExpiringSubscriptions();
+function addSubscription() {
+    crm.showForm();
 }
 
-function simulateTimeAdvance() {
-    subscriptionManager.simulateTimeAdvance();
+function hideForm() {
+    crm.hideForm();
 }
 
-function exportToExcel() {
-    subscriptionManager.exportToExcel();
+function removeSubscription(id) {
+    crm.removeSubscription(id);
 }
 
-function clearNotifications() {
-    subscriptionManager.clearNotifications();
+function exportData() {
+    crm.exportData();
 }
 
-function configureEmail() {
-    subscriptionManager.configureEmail();
-}
-
-function configureGoogleSheets() {
-    subscriptionManager.configureGoogleSheets();
-}
-
-function removeSubscription(subscriptionId) {
-    subscriptionManager.removeSubscription(subscriptionId);
+function clearData() {
+    crm.clearData();
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    subscriptionManager = new SubscriptionManager();
-    window.subscriptionManager = subscriptionManager;
+    crm = new SimpleCRM();
+    window.crm = crm;
 });

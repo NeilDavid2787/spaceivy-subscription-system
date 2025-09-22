@@ -3,373 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spaceivy Subscription Dashboard</title>
+    <title>Spaceivy CRM</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <!-- Dark Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <div class="logo-icon">S</div>
-                    <span>Spaceivy</span>
-                </div>
-                <div class="sidebar-subtitle">Subscription Management</div>
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-rocket"></i> Spaceivy CRM</h1>
             </div>
-            
-            <nav>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="#overview" class="nav-link active">
-                            <i class="fas fa-th-large"></i>
-                            Overview
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#analytics" class="nav-link">
-                            <i class="fas fa-chart-line"></i>
-                            Analytics
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#subscriptions" class="nav-link">
-                            <i class="fas fa-credit-card"></i>
-                            Subscriptions
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#customers" class="nav-link">
-                            <i class="fas fa-users"></i>
-                            Customers
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#reports" class="nav-link">
-                            <i class="fas fa-file-alt"></i>
-                            Reports
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#settings" class="nav-link">
-                            <i class="fas fa-cog"></i>
-                            Settings
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            
-            <div class="sidebar-support">
-                <div class="support-title">Support</div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="#help" class="nav-link">
-                            <i class="fas fa-question-circle"></i>
-                            Help
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#feedback" class="nav-link">
-                            <i class="fas fa-comment"></i>
-                            Support & Feedback
-                        </a>
-                    </li>
-                </ul>
+            <div class="header-right">
+                <button class="btn btn-primary" onclick="addSubscription()">
+                    <i class="fas fa-plus"></i> Add Subscription
+                </button>
             </div>
-            
-            <!-- Premium card removed for personal CRM -->
-        </aside>
+        </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Top Header -->
-            <header class="header">
-                <div class="header-left">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search subscriptions, customers or reports">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalRevenue">₹0</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeSubscriptions">0</div>
+                <div class="stat-label">Active Subscriptions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="expiringSoon">0</div>
+                <div class="stat-label">Expiring Soon</div>
+            </div>
+        </div>
+
+        <!-- Add Subscription Form (Hidden by default) -->
+        <div class="form-card" id="subscriptionForm" style="display: none;">
+            <h2>Add New Subscription</h2>
+            <form id="addForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Customer Name</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp Number</label>
+                        <input type="tel" id="whatsappNumber" placeholder="+91 98765 43210" required>
                     </div>
                 </div>
                 
-                <div class="header-right">
-                    <div class="header-actions">
-                        <div class="header-icon">
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <div class="header-icon">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <div class="header-icon">
-                            <i class="fas fa-th"></i>
-                        </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" required>
                     </div>
-                    
-                    <div class="user-profile">
-                        <div class="user-avatar">A</div>
-                        <div class="user-info">
-                            <div class="user-name">Admin User</div>
-                            <div class="user-email">admin@spaceivy.in</div>
-                        </div>
-                        <i class="fas fa-chevron-down"></i>
+                    <div class="form-group">
+                        <label>Plan Type</label>
+                        <select id="planType" required>
+                            <option value="">Select Plan</option>
+                            <option value="hourly">Hourly</option>
+                            <option value="half-day">Half Day</option>
+                            <option value="full-day">Full Day</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
                     </div>
                 </div>
-            </header>
-
-            <!-- Content Area -->
-            <div class="content">
-                <!-- Welcome Section -->
-                <div class="welcome-section">
-                    <h1 class="welcome-title">Welcome back Admin User 👋</h1>
-                    <p class="welcome-subtitle">Glad to see you again to Spaceivy, ready to manage your subscriptions?</p>
-                </div>
-
-                <!-- Tabs -->
-                <div class="tabs">
-                    <button class="tab active">All Data</button>
-                    <button class="tab">Reports</button>
-                    <button class="tab">Subscriptions</button>
-                    <button class="tab">Sales</button>
-                    <button class="tab">Customers</button>
-                    <button class="tab">Orders</button>
-                </div>
-
-                <!-- KPI Cards -->
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <div>
-                                <div class="kpi-title">Total Revenue</div>
-                                <div class="kpi-value" id="totalRevenue">₹0.00</div>
-                                <div class="kpi-subtitle">Avg. revenue ₹0.00</div>
-                            </div>
-                            <div class="kpi-actions">
-                                <div class="kpi-icon">
-                                    <i class="fas fa-info-circle"></i>
-                                </div>
-                                <div class="kpi-icon">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="kpi-chart"></div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Amount (₹)</label>
+                        <input type="number" id="amount" step="0.01" required>
                     </div>
-                    
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <div>
-                                <div class="kpi-title">Active Subscriptions</div>
-                                <div class="kpi-value" id="activeSubscriptions">0</div>
-                                <div class="kpi-subtitle">Avg. subscriptions 0</div>
-                            </div>
-                            <div class="kpi-actions">
-                                <div class="kpi-icon">
-                                    <i class="fas fa-info-circle"></i>
-                                </div>
-                                <div class="kpi-icon">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="kpi-chart"></div>
-                    </div>
-                    
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <div>
-                                <div class="kpi-title">Expiring Soon</div>
-                                <div class="kpi-value" id="expiringSoon">0</div>
-                                <div class="kpi-subtitle">Avg. expiring 0</div>
-                            </div>
-                            <div class="kpi-actions">
-                                <div class="kpi-icon">
-                                    <i class="fas fa-info-circle"></i>
-                                </div>
-                                <div class="kpi-icon">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="kpi-chart"></div>
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate" required>
                     </div>
                 </div>
-
-                <!-- Analytics Cards -->
-                <div class="analytics-grid">
-                    <div class="analytics-card">
-                        <div class="analytics-header">
-                            <div>
-                                <div class="analytics-title">Revenue Analytics</div>
-                                <div class="analytics-subtitle">Total analytics revenue for today</div>
-                            </div>
-                            <select class="analytics-dropdown">
-                                <option>Monthly</option>
-                                <option>Weekly</option>
-                                <option>Daily</option>
-                            </select>
-                        </div>
-                        <div class="chart-placeholder">
-                            <i class="fas fa-chart-bar"></i> Revenue Chart
-                        </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" id="startTime" required>
                     </div>
-                    
-                    <div class="analytics-card">
-                        <div class="analytics-header">
-                            <div>
-                                <div class="analytics-title">Spaceivy Stats</div>
-                                <div class="analytics-subtitle">8K Social visitors</div>
-                            </div>
-                        </div>
-                        <div class="stats-card">
-                            <div class="stats-value">₹8,035</div>
-                            <div class="stats-label">Actual for Sept</div>
-                            <div class="stats-change positive">
-                                <i class="fas fa-arrow-up"></i>
-                                4.5%
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" id="endTime" required>
                     </div>
                 </div>
-
-                <!-- Add Subscription Form -->
-                <div class="form-card">
-                    <h2 class="form-title">Add New Subscription</h2>
-                    <form id="subscriptionForm" class="form-grid">
-                        <div class="form-group">
-                            <label for="customerName">Customer Name</label>
-                            <input type="text" id="customerName" required placeholder="Enter customer name">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="whatsappNumber">WhatsApp Number</label>
-                            <input type="tel" id="whatsappNumber" required placeholder="+91 98765 43210" pattern="^\+91\s?\d{5}\s?\d{5}$">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" required placeholder="customer@example.com">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="planType">Plan Type</label>
-                            <select id="planType" required>
-                                <option value="">Select plan type</option>
-                                <option value="hourly">Hourly</option>
-                                <option value="half-day">Half Day</option>
-                                <option value="full-day">Full Day</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="amount">Subscription Amount (₹)</label>
-                            <input type="number" id="amount" step="0.01" min="0" required placeholder="Enter amount">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="startDate">Start Date</label>
-                            <input type="date" id="startDate" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="endDate">End Date</label>
-                            <input type="date" id="endDate" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="startTime">Start Time</label>
-                            <input type="time" id="startTime" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="endTime">End Time</label>
-                            <input type="time" id="endTime" required>
-                        </div>
-
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Add Subscription
-                            </button>
-                        </div>
-                    </form>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Subscription</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
                 </div>
+            </form>
+        </div>
 
-                <!-- System Controls -->
-                <div class="form-card">
-                    <h2 class="form-title">System Controls</h2>
-                    <div class="controls-grid">
-                        <button class="btn btn-secondary" data-action="check-expiring">
-                            <i class="fas fa-search"></i> Check Expiring
-                        </button>
-                        <button class="btn btn-secondary" data-action="advance-time">
-                            <i class="fas fa-forward"></i> Advance Time
-                        </button>
-                        <button class="btn btn-success" data-action="export-excel">
-                            <i class="fas fa-file-excel"></i> Export Excel
-                        </button>
-                        <button class="btn btn-secondary" data-action="clear-notifications">
-                            <i class="fas fa-trash"></i> Clear Logs
-                        </button>
-                        <button class="btn btn-secondary" data-action="configure-email">
-                            <i class="fas fa-envelope"></i> Email Setup
-                        </button>
-                        <button class="btn btn-secondary" data-action="configure-sheets">
-                            <i class="fas fa-table"></i> Google Sheets
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Subscriptions Data Table -->
-                <div class="data-card">
-                    <div class="data-header">
-                        <div>
-                            <div class="data-title">Subscription Information</div>
-                            <div class="data-subtitle">All information about your subscriptions</div>
-                        </div>
-                        <div class="data-toolbar">
-                            <div class="data-search">
-                                <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search subscription name">
-                            </div>
-                            <div class="data-date">
-                                <i class="fas fa-calendar"></i>
-                                22 Sept - 28 Sept 2025
-                                <i class="fas fa-times"></i>
-                            </div>
-                            <button class="data-download" onclick="exportToExcel()">
-                                <i class="fas fa-download"></i>
-                                Download Data
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div id="subscriptionsList">
-                        <!-- Subscriptions will be rendered here -->
-                    </div>
-                </div>
-
-                <!-- Activity Log -->
-                <div class="data-card">
-                    <div class="data-header">
-                        <div>
-                            <div class="data-title">Activity Log</div>
-                            <div class="data-subtitle">Recent system activities and notifications</div>
-                        </div>
-                    </div>
-                    <div id="notificationsList">
-                        <!-- Notifications will be rendered here -->
-                    </div>
+        <!-- Subscriptions Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h2>Subscriptions</h2>
+                <div class="table-actions">
+                    <button class="btn btn-secondary" onclick="exportData()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearData()">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
                 </div>
             </div>
-        </main>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Start Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subscriptionsTable">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <p>No subscriptions yet. Click "Add Subscription" to get started.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="notifications" id="notifications"></div>
     </div>
 
-    <!-- Scripts -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="email-service.js"></script>
-    <script src="google-sheets.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
