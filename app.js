@@ -152,15 +152,19 @@ class SubscriptionManager {
     addSubscription() {
         const formData = new FormData(document.getElementById('subscriptionForm'));
         
+        const planType = document.getElementById('planType').value;
+        const customDuration = parseInt(document.getElementById('duration').value);
+        const planDuration = this.getPlanDuration(planType, customDuration);
+        
         const subscription = {
             id: 'SUB-' + Date.now().toString().substr(-6),
             customerName: document.getElementById('customerName').value.trim(),
             email: document.getElementById('email').value.trim(),
             phone: document.getElementById('phone').value.trim(),
             startDate: new Date(document.getElementById('startDate').value),
-            duration: parseInt(document.getElementById('duration').value),
+            duration: planDuration,
             amount: parseFloat(document.getElementById('amount').value),
-            planType: document.getElementById('planType').value,
+            planType: planType,
             status: 'active',
             createdAt: new Date()
         };
@@ -345,6 +349,7 @@ class SubscriptionManager {
 
     renderSubscriptions() {
         const container = document.getElementById('subscriptionsList');
+        console.log('Rendering subscriptions:', this.subscriptions.length);
         
         if (this.subscriptions.length === 0) {
             container.innerHTML = `
@@ -673,12 +678,26 @@ Welcome email sent: ${emailSent ? 'Yes' : 'No'}
 
     // Get duration text
     getDurationText(days) {
-        if (days === 30) return '30 days (1 month)';
-        if (days === 60) return '60 days (2 months)';
-        if (days === 90) return '90 days (3 months)';
-        if (days === 180) return '180 days (6 months)';
-        if (days === 365) return '365 days (1 year)';
+        if (days === 1) return '1 day';
+        if (days === 7) return '1 week';
+        if (days === 30) return '1 month';
+        if (days === 60) return '2 months';
+        if (days === 90) return '3 months';
+        if (days === 180) return '6 months';
+        if (days === 365) return '1 year';
         return `${days} days`;
+    }
+
+    // Get plan duration in days based on plan type
+    getPlanDuration(planType, customDays = null) {
+        switch(planType) {
+            case 'hours': return 1; // 1 day for hours
+            case 'half-day': return 1; // 1 day for half day
+            case 'full-day': return 1; // 1 day for full day
+            case 'weekly': return 7; // 1 week
+            case 'monthly': return 30; // 1 month
+            default: return customDays || 30;
+        }
     }
 
     // Remove subscription
@@ -720,12 +739,14 @@ Welcome email sent: ${emailSent ? 'Yes' : 'No'}
 
     // Configure Google Sheets
     configureGoogleSheets() {
-        const apiKey = prompt('Enter your Google Sheets API Key:');
-        if (apiKey) {
-            this.googleSheetsService.configure({ apiKey: apiKey });
-            localStorage.setItem('spaceivy_google_sheets_api_key', apiKey);
+        const apiKey = prompt('Enter your Google Sheets API Key:\n\nTo get your API key:\n1. Go to Google Cloud Console\n2. Enable Google Sheets API\n3. Create credentials (API Key)\n4. Copy the API key here');
+        if (apiKey && apiKey.trim()) {
+            this.googleSheetsService.configure({ apiKey: apiKey.trim() });
+            localStorage.setItem('spaceivy_google_sheets_api_key', apiKey.trim());
             this.showMessage('Google Sheets configured! Creating spreadsheet...', 'info');
             this.createGoogleSpreadsheet();
+        } else {
+            this.showMessage('Google Sheets configuration cancelled', 'info');
         }
     }
 
@@ -750,32 +771,67 @@ Welcome email sent: ${emailSent ? 'Yes' : 'No'}
 let subscriptionManager;
 
 function checkExpiringSubscriptions() {
-    subscriptionManager.checkExpiringSubscriptions();
+    console.log('Check Expiring button clicked');
+    if (subscriptionManager) {
+        subscriptionManager.checkExpiringSubscriptions();
+    } else {
+        alert('System not ready. Please wait and try again.');
+    }
 }
 
 function simulateTimeAdvance() {
-    subscriptionManager.simulateTimeAdvance();
+    console.log('Advance Time button clicked');
+    if (subscriptionManager) {
+        subscriptionManager.simulateTimeAdvance();
+    } else {
+        alert('System not ready. Please wait and try again.');
+    }
 }
 
 function clearNotifications() {
-    subscriptionManager.clearNotifications();
+    console.log('Clear Notifications button clicked');
+    if (subscriptionManager) {
+        subscriptionManager.clearNotifications();
+    } else {
+        alert('System not ready. Please wait and try again.');
+    }
 }
 
 function exportData() {
-    subscriptionManager.exportData();
+    console.log('Export Data button clicked');
+    if (subscriptionManager) {
+        subscriptionManager.exportData();
+    } else {
+        alert('System not ready. Please wait and try again.');
+    }
 }
 
 function removeSubscription(subscriptionId) {
-    subscriptionManager.removeSubscription(subscriptionId);
+    console.log('Remove subscription clicked for:', subscriptionId);
+    if (subscriptionManager) {
+        subscriptionManager.removeSubscription(subscriptionId);
+    } else {
+        alert('System not ready. Please wait and try again.');
+    }
 }
 
 function refreshNotifications() {
-    subscriptionManager.renderNotifications();
-    subscriptionManager.showMessage('Notifications refreshed!', 'info');
+    console.log('Refresh Notifications button clicked');
+    if (subscriptionManager) {
+        subscriptionManager.renderNotifications();
+        subscriptionManager.showMessage('Notifications refreshed!', 'info');
+    } else {
+        alert('System not ready. Please wait and try again.');
+    }
 }
 
 function configureGoogleSheets() {
-    subscriptionManager.configureGoogleSheets();
+    console.log('Configure Google Sheets button clicked');
+    if (subscriptionManager) {
+        subscriptionManager.configureGoogleSheets();
+    } else {
+        alert('System not ready. Please wait and try again.');
+    }
 }
 
 // Make configureEmail globally accessible
