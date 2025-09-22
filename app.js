@@ -19,7 +19,6 @@ class SubscriptionManager {
         this.setDefaultDate();
         this.renderAll();
         this.startAutoCheck();
-        this.loadSampleData();
         this.setupEmailConfiguration();
     }
 
@@ -372,7 +371,13 @@ class SubscriptionManager {
         
         const monthlyRevenue = this.subscriptions.reduce((total, sub) => {
             const daysUntilExpiry = this.getDaysUntilExpiry(sub.startDate, sub.duration);
-            return daysUntilExpiry >= 0 ? total + sub.amount : total;
+            // Only count subscriptions that started today or in the future
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const subscriptionStartDate = new Date(sub.startDate);
+            subscriptionStartDate.setHours(0, 0, 0, 0);
+            
+            return (daysUntilExpiry >= 0 && subscriptionStartDate >= today) ? total + sub.amount : total;
         }, 0);
         
         const notificationsSent = this.notifications.length;
@@ -417,41 +422,6 @@ class SubscriptionManager {
         }, 5000);
     }
 
-    // Sample Data
-    loadSampleData() {
-        if (this.subscriptions.length === 0) {
-            const sampleSubscriptions = [
-                {
-                    id: 'SUB-001',
-                    customerName: 'Rajesh Kumar',
-                    email: 'rajesh@example.com',
-                    phone: '+91 98765 43210',
-                    startDate: new Date(this.currentDate.getTime() - 25 * 24 * 60 * 60 * 1000), // 25 days ago
-                    duration: 30,
-                    amount: 2999,
-                    planType: 'premium',
-                    status: 'active',
-                    createdAt: new Date()
-                },
-                {
-                    id: 'SUB-002',
-                    customerName: 'Priya Sharma',
-                    email: 'priya@example.com',
-                    phone: '+91 87654 32109',
-                    startDate: new Date(this.currentDate.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-                    duration: 90,
-                    amount: 7999,
-                    planType: 'enterprise',
-                    status: 'active',
-                    createdAt: new Date()
-                }
-            ];
-
-            this.subscriptions.push(...sampleSubscriptions);
-            this.saveData();
-            this.renderAll();
-        }
-    }
 
     // Auto-check for expiring subscriptions
     startAutoCheck() {
