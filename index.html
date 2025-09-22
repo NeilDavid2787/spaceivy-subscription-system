@@ -34,7 +34,7 @@
                         <input type="password" id="gmailPassword" placeholder="Enter your Gmail app password">
                         <small>Get this from Google Account → Security → App passwords</small>
                     </div>
-                    <button onclick="alert('Button works!'); setTimeout(() => { if (window.subscriptionManager) { window.subscriptionManager.configureEmail(); } else { alert('Subscription manager not loaded yet. Please wait and try again.'); } }, 100);" class="btn btn-primary">
+                    <button onclick="if (window.subscriptionManager) { window.subscriptionManager.configureEmail(); } else { alert('Subscription manager not loaded yet. Please wait and try again.'); }" class="btn btn-primary">
                         <i class="fas fa-check"></i> Configure Email
                     </button>
                 </div>
@@ -64,13 +64,13 @@
                             <label for="phone">
                                 <i class="fas fa-phone"></i> Phone Number
                             </label>
-                            <input type="tel" id="phone" required placeholder="+91 98765 43210">
+                            <input type="tel" id="phone" required placeholder="+1 (555) 123-4567">
                         </div>
                         <div class="form-group">
                             <label for="amount">
-                                <i class="fas fa-rupee-sign"></i> Subscription Amount (₹)
+                                <i class="fas fa-dollar-sign"></i> Subscription Amount
                             </label>
-                            <input type="number" id="amount" step="0.01" min="0" required placeholder="2999">
+                            <input type="number" id="amount" step="0.01" min="0" required placeholder="29.99">
                         </div>
                     </div>
 
@@ -199,4 +199,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-e if

@@ -480,7 +480,6 @@ class SubscriptionManager {
 
     // Email configuration
     configureEmail() {
-        alert('Button click is working!'); // Test if click works
         console.log('Configure email function called');
         const password = document.getElementById('gmailPassword').value;
         console.log('Password length:', password.length);
