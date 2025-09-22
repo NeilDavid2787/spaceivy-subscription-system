@@ -32,12 +32,40 @@ class SubscriptionManager {
         console.log('Saved subscriptions:', savedSubscriptions);
         console.log('Saved notifications:', savedNotifications);
 
+        // Clear old sample data if it exists
         if (savedSubscriptions) {
-            this.subscriptions = JSON.parse(savedSubscriptions).map(sub => ({
+            const parsedSubscriptions = JSON.parse(savedSubscriptions);
+            console.log('Raw subscriptions from storage:', parsedSubscriptions);
+            
+            // Filter out sample data (John Doe, Jane Smith, Rajesh, Priya)
+            const filteredSubscriptions = parsedSubscriptions.filter(sub => {
+                const isSampleData = sub.customerName === 'John Doe' || 
+                                   sub.customerName === 'Jane Smith' || 
+                                   sub.customerName === 'Rajesh Kumar' || 
+                                   sub.customerName === 'Priya Sharma' ||
+                                   sub.email === 'john@example.com' ||
+                                   sub.email === 'jane@example.com' ||
+                                   sub.email === 'rajesh@example.com' ||
+                                   sub.email === 'priya@example.com';
+                
+                if (isSampleData) {
+                    console.log('Removing sample data:', sub.customerName);
+                }
+                return !isSampleData;
+            });
+            
+            this.subscriptions = filteredSubscriptions.map(sub => ({
                 ...sub,
                 startDate: new Date(sub.startDate)
             }));
-            console.log('Loaded subscriptions:', this.subscriptions);
+            
+            // Save the cleaned data back to localStorage
+            if (filteredSubscriptions.length !== parsedSubscriptions.length) {
+                console.log('Sample data removed, saving cleaned data...');
+                this.saveData();
+            }
+            
+            console.log('Loaded subscriptions after cleanup:', this.subscriptions);
             console.log('Number of subscriptions loaded:', this.subscriptions.length);
         } else {
             console.log('No saved subscriptions found - starting fresh');
