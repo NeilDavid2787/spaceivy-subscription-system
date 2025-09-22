@@ -38,6 +38,9 @@ class SubscriptionManager {
                 startDate: new Date(sub.startDate)
             }));
             console.log('Loaded subscriptions:', this.subscriptions);
+            console.log('Number of subscriptions loaded:', this.subscriptions.length);
+        } else {
+            console.log('No saved subscriptions found - starting fresh');
         }
 
         if (savedNotifications) {
@@ -398,6 +401,7 @@ class SubscriptionManager {
         document.getElementById('totalSubscriptions').textContent = totalSubscriptions;
         document.getElementById('expiringSoon').textContent = expiringSoon;
         document.getElementById('monthlyRevenue').textContent = `₹${monthlyRevenue.toFixed(2)}`;
+        console.log('Revenue updated to:', `₹${monthlyRevenue.toFixed(2)}`);
         document.getElementById('notificationsSent').textContent = notificationsSent;
     }
 
