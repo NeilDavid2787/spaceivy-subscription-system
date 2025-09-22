@@ -3,20 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spaceivy Subscription Billing System</title>
+    <title>Spaceivy Subscription CRM</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <h1><i class="fas fa-rocket"></i> Spaceivy Subscription System</h1>
-                <p>Automated billing and renewal management</p>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Spaceivy</h1>
+                <p>Subscription CRM</p>
             </div>
-        </header>
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#dashboard" class="nav-link active">
+                            <i class="fas fa-chart-line"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#subscriptions" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            Subscriptions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#notifications" class="nav-link">
+                            <i class="fas fa-bell"></i>
+                            Notifications
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#settings" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
 
+        <!-- Main Content -->
         <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1>Dashboard</h1>
+                <p>Manage your subscription business</p>
+            </div>
+
             <!-- Demo Notice -->
             <div class="demo-notice">
                 <i class="fas fa-info-circle"></i>
@@ -27,73 +63,70 @@
             <div class="config-section">
                 <h2><i class="fas fa-cog"></i> Email Configuration</h2>
                 <div class="config-form">
-                    <div class="form-group">
-                        <label for="gmailPassword">
-                            <i class="fas fa-key"></i> Gmail App Password
-                        </label>
-                        <input type="password" id="gmailPassword" placeholder="Enter your Gmail app password">
-                        <small>Get this from Google Account → Security → App passwords</small>
-                    </div>
-                    <button onclick="if (window.subscriptionManager) { window.subscriptionManager.configureEmail(); } else { alert('Subscription manager not loaded yet. Please wait and try again.'); }" class="btn btn-primary">
+                    <input type="password" id="gmailPassword" placeholder="Enter your Gmail app password">
+                    <button onclick="configureEmail()" id="configureEmailBtn" class="btn btn-primary">
                         <i class="fas fa-check"></i> Configure Email
                     </button>
                 </div>
             </div>
 
+            <!-- Statistics Dashboard -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Overview</h2>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalSubscriptions">0</div>
+                        <div class="stat-label">Total Subscriptions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="expiringSoon">0</div>
+                        <div class="stat-label">Expiring Soon</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="monthlyRevenue">₹0.00</div>
+                        <div class="stat-label">Monthly Revenue</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="notificationsSent">0</div>
+                        <div class="stat-label">Notifications Sent</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Add Subscription Form -->
-            <section class="form-section">
-                <h2><i class="fas fa-plus-circle"></i> Add New Subscription</h2>
-                <form id="subscriptionForm" class="subscription-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="customerName">
-                                <i class="fas fa-user"></i> Customer Name
-                            </label>
-                            <input type="text" id="customerName" required placeholder="Enter customer name">
-                        </div>
-                        <div class="form-group">
-                            <label for="email">
-                                <i class="fas fa-envelope"></i> Email Address
-                            </label>
-                            <input type="email" id="email" required placeholder="customer@example.com">
-                        </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Add New Subscription</h2>
+                </div>
+                <form id="subscriptionForm" class="form-grid">
+                    <div class="form-group">
+                        <label for="customerName">
+                            <i class="fas fa-user"></i> Customer Name
+                        </label>
+                        <input type="text" id="customerName" name="customerName" required placeholder="Enter customer name">
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="phone">
-                                <i class="fas fa-phone"></i> Phone Number
-                            </label>
-                            <input type="tel" id="phone" required placeholder="+91 98765 43210" pattern="^\+91\s?\d{5}\s?\d{5}$">
-                        </div>
-                        <div class="form-group">
-                            <label for="amount">
-                                <i class="fas fa-rupee-sign"></i> Subscription Amount
-                            </label>
-                            <input type="number" id="amount" step="0.01" min="0" required placeholder="29.99">
-                        </div>
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        <input type="email" id="email" name="email" required placeholder="customer@example.com">
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="startDate">
-                                <i class="fas fa-calendar-alt"></i> Start Date
-                            </label>
-                            <input type="date" id="startDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="duration">
-                                <i class="fas fa-clock"></i> Duration
-                            </label>
-                            <select id="duration" required>
-                                <option value="">Select duration</option>
-                                <option value="30">30 days</option>
-                                <option value="60">60 days</option>
-                                <option value="90">90 days</option>
-                                <option value="180">6 months</option>
-                                <option value="365">1 year</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="phone">
+                            <i class="fas fa-phone"></i> Phone Number
+                        </label>
+                        <input type="tel" id="phone" required placeholder="+91 98765 43210" pattern="^\+91\s?\d{5}\s?\d{5}$">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">
+                            <i class="fas fa-rupee-sign"></i> Subscription Amount
+                        </label>
+                        <input type="number" id="amount" step="0.01" min="0" required placeholder="29.99">
                     </div>
 
                     <div class="form-group">
@@ -110,15 +143,33 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add Subscription
-                    </button>
+                    <div class="form-group">
+                        <label for="startDate">
+                            <i class="fas fa-calendar"></i> Start Date
+                        </label>
+                        <input type="date" id="startDate" name="startDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration">
+                            <i class="fas fa-clock"></i> Custom Duration (Days)
+                        </label>
+                        <input type="number" id="duration" name="duration" min="1" placeholder="30" value="30">
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Subscription
+                        </button>
+                    </div>
                 </form>
-            </section>
+            </div>
 
             <!-- System Controls -->
-            <section class="controls-section">
-                <h2><i class="fas fa-cogs"></i> System Controls</h2>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">System Controls</h2>
+                </div>
                 <div class="controls-grid">
                     <button onclick="checkExpiringSubscriptions()" class="btn btn-secondary">
                         <i class="fas fa-search"></i> Check Expiring
@@ -139,70 +190,31 @@
                         <i class="fas fa-table"></i> Setup Google Sheets
                     </button>
                 </div>
-            </section>
+            </div>
 
-            <!-- Statistics Dashboard -->
-            <section class="stats-section">
-                <h2><i class="fas fa-chart-bar"></i> Dashboard</h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="totalSubscriptions">0</div>
-                            <div class="stat-label">Total Subscriptions</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="expiringSoon">0</div>
-                            <div class="stat-label">Expiring Soon</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="monthlyRevenue">$0</div>
-                            <div class="stat-label">Monthly Revenue</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="notificationsSent">0</div>
-                            <div class="stat-label">Notifications Sent</div>
-                        </div>
-                    </div>
+            <!-- Active Subscriptions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Active Subscriptions</h2>
                 </div>
-            </section>
-
-            <!-- Subscriptions List -->
-            <section class="subscriptions-section">
-                <h2><i class="fas fa-list"></i> Active Subscriptions</h2>
-                <div id="subscriptionsList" class="subscriptions-list">
+                <div id="subscriptionsList">
                     <!-- Subscriptions will be rendered here -->
                 </div>
-            </section>
+            </div>
 
-            <!-- Notifications Log -->
-            <section class="notifications-section">
-                <h2><i class="fas fa-bell"></i> Notification Log</h2>
-                <div id="notificationsList" class="notifications-list">
+            <!-- Notifications -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Notifications</h2>
+                </div>
+                <div id="notificationsList">
                     <!-- Notifications will be rendered here -->
                 </div>
-            </section>
+            </div>
         </main>
     </div>
 
-    <!-- EmailJS SDK -->
+    <!-- Scripts -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="email-service.js"></script>
     <script src="google-sheets.js"></script>
