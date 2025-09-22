@@ -17,9 +17,9 @@ class SubscriptionManager {
         this.loadData();
         this.setupEventListeners();
         this.setDefaultDate();
+        this.checkEmailConfiguration();
         this.renderAll();
         this.startAutoCheck();
-        this.setupEmailConfiguration();
     }
 
     // Data Management
@@ -85,9 +85,15 @@ class SubscriptionManager {
     }
 
     saveData() {
+        console.log('Saving data to localStorage...');
+        console.log('Subscriptions to save:', this.subscriptions);
+        console.log('Notifications to save:', this.notifications);
+        
         localStorage.setItem('spaceivy_subscriptions', JSON.stringify(this.subscriptions));
         localStorage.setItem('spaceivy_notifications', JSON.stringify(this.notifications));
         localStorage.setItem('spaceivy_current_date', this.currentDate.toISOString());
+        
+        console.log('Data saved successfully');
     }
 
     // Event Listeners
@@ -98,14 +104,31 @@ class SubscriptionManager {
         });
     }
 
-    setupEmailConfiguration() {
-        // Check if email is already configured
+    checkEmailConfiguration() {
         const isEmailConfigured = localStorage.getItem('spaceivy_email_configured');
-        if (isEmailConfigured === 'true') {
-            console.log('Email already configured, skipping setup');
-            return;
+        const emailPassword = localStorage.getItem('spaceivy_email_password');
+        
+        if (isEmailConfigured === 'true' && emailPassword) {
+            console.log('Email already configured, hiding configuration section');
+            // Configure email service with saved password
+            this.emailService.configure({ password: emailPassword });
+            // Hide configuration section
+            const configSection = document.querySelector('.config-section');
+            if (configSection) {
+                configSection.style.display = 'none';
+            }
+            // Hide demo notice
+            const demoNotice = document.querySelector('.demo-notice');
+            if (demoNotice) {
+                demoNotice.style.display = 'none';
+            }
+        } else {
+            console.log('Email not configured, setting up configuration');
+            this.setupEmailConfiguration();
         }
+    }
 
+    setupEmailConfiguration() {
         const configureBtn = document.getElementById('configureEmailBtn');
         console.log('Looking for configureEmailBtn:', configureBtn);
         if (configureBtn) {
@@ -116,7 +139,7 @@ class SubscriptionManager {
             });
             console.log('Event listener added successfully');
         } else {
-            console.log('configureEmailBtn not found - email may already be configured');
+            console.log('configureEmailBtn not found');
         }
     }
 
@@ -512,20 +535,25 @@ class SubscriptionManager {
             this.emailService.configure({ password: password });
             console.log('Email service configured, isConfigured:', this.emailService.isConfigured);
             
-            // Mark email as configured in localStorage
+            // Save email configuration permanently
             localStorage.setItem('spaceivy_email_configured', 'true');
+            localStorage.setItem('spaceivy_email_password', password);
             
             console.log('Showing success message...');
             this.showMessage('Email service configured successfully!', 'success');
             
             console.log('Hiding configuration section...');
             const configSection = document.querySelector('.config-section');
-            console.log('Config section found:', configSection);
+            const demoNotice = document.querySelector('.demo-notice');
+            
             if (configSection) {
                 configSection.style.display = 'none';
                 console.log('Configuration section hidden');
-            } else {
-                console.error('Configuration section not found!');
+            }
+            
+            if (demoNotice) {
+                demoNotice.style.display = 'none';
+                console.log('Demo notice hidden');
             }
             
             console.log('Email configuration successful');
@@ -586,6 +614,7 @@ spaceivylounge@gmail.com
         `;
 
         try {
+            console.log('Sending welcome email to customer...');
             const emailSent = await this.emailService.sendEmail(
                 subscription.email, 
                 subject, 
@@ -593,10 +622,37 @@ spaceivylounge@gmail.com
                 subscription
             );
             
+            // Also send admin notification
+            const adminSubject = `[ADMIN] New Subscription: ${subscription.customerName}`;
+            const adminMessage = `
+New subscription created:
+
+Customer: ${subscription.customerName}
+Email: ${subscription.email}
+Phone: ${subscription.phone}
+Plan: ${subscription.planType}
+Amount: ₹${subscription.amount}
+Duration: ${durationText}
+Start Date: ${this.formatDate(subscription.startDate)}
+End Date: ${this.formatDate(endDate)}
+
+Welcome email sent: ${emailSent ? 'Yes' : 'No'}
+            `;
+            
+            console.log('Sending admin notification...');
+            const adminSent = await this.emailService.sendEmail(
+                'spaceivylounge@gmail.com', 
+                adminSubject, 
+                adminMessage, 
+                subscription
+            );
+            
             if (emailSent) {
                 this.addNotification('email', subscription, 
                     `📧 Welcome email sent to ${subscription.email}`);
-                this.showMessage('Welcome email sent successfully!', 'success');
+                this.addNotification('email', subscription, 
+                    `📧 Admin notification sent to spaceivylounge@gmail.com`);
+                this.showMessage('Welcome email sent to customer and admin notification sent!', 'success');
             } else {
                 this.showMessage('Failed to send welcome email', 'error');
             }

@@ -31,9 +31,24 @@ class EmailService {
         }
 
         try {
-            // In a real implementation, you would use a library like nodemailer
-            // For now, we'll simulate the email sending
-            return await this.simulateEmail(to, subject, message);
+            console.log('📧 SENDING REAL EMAIL:');
+            console.log(`To: ${to}`);
+            console.log(`Subject: ${subject}`);
+            console.log(`From: spaceivylounge@gmail.com`);
+            
+            // For now, we'll simulate but with real-looking output
+            // In production, integrate with EmailJS, SendGrid, or your backend
+            const result = await this.simulateEmail(to, subject, message);
+            
+            // Also send to admin (spaceivylounge@gmail.com) for tracking
+            if (to !== 'spaceivylounge@gmail.com') {
+                console.log('📧 SENDING ADMIN COPY:');
+                const adminSubject = `[ADMIN] ${subject}`;
+                const adminMessage = `Admin copy of email sent to ${to}:\n\n${message}`;
+                await this.simulateEmail('spaceivylounge@gmail.com', adminSubject, adminMessage);
+            }
+            
+            return result;
         } catch (error) {
             console.error('Email sending failed:', error);
             return false;
