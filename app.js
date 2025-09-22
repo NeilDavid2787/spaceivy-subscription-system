@@ -351,54 +351,57 @@ Revenue: ₹${subscription.amount}
             return;
         }
 
-        container.innerHTML = this.subscriptions.map(subscription => {
-            const status = this.getSubscriptionStatus(subscription);
-            const remainingTime = this.getRemainingTime(subscription);
-            const isExpiring = status === 'expiring';
-            const isExpired = status === 'expired';
-
-            return `
-                <div class="subscription-card ${isExpiring ? 'expiring' : ''} ${isExpired ? 'expired' : ''}">
-                    <div class="subscription-header">
-                        <div class="customer-name">${subscription.customerName}</div>
-                        <div class="plan-badge ${subscription.planType}">${subscription.planType}</div>
-                    </div>
-                    
-                    <div class="subscription-details">
-                        <div class="detail-item">
-                            <div class="detail-label">Email</div>
-                            <div class="detail-value">${subscription.email}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">WhatsApp</div>
-                            <div class="detail-value">${subscription.whatsappNumber}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Amount</div>
-                            <div class="detail-value">₹${subscription.amount}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Status</div>
-                            <div class="detail-value">${status.toUpperCase()}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="time-range">
-                        <strong>Time:</strong> ${subscription.startTime} - ${subscription.endTime}
-                    </div>
-                    
-                    <div class="remaining-time">
-                        <i class="fas fa-clock"></i> ${remainingTime}
-                    </div>
-                    
-                    <div class="subscription-actions">
-                        <button onclick="removeSubscription('${subscription.id}')" class="btn btn-danger btn-sm">
-                            <i class="fas fa-trash"></i> Remove
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        container.innerHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer Name</th>
+                        <th>Email</th>
+                        <th>WhatsApp</th>
+                        <th>Plan Type</th>
+                        <th>Amount</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Time Range</th>
+                        <th>Remaining</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${this.subscriptions.map(subscription => {
+                        const status = this.getSubscriptionStatus(subscription);
+                        const remainingTime = this.getRemainingTime(subscription);
+                        
+                        return `
+                            <tr>
+                                <td>${subscription.id}</td>
+                                <td>${subscription.customerName}</td>
+                                <td>${subscription.email}</td>
+                                <td>${subscription.whatsappNumber}</td>
+                                <td>
+                                    <span class="status-badge ${subscription.planType}">${subscription.planType}</span>
+                                </td>
+                                <td>₹${subscription.amount}</td>
+                                <td>${this.formatDate(subscription.startDate)}</td>
+                                <td>${this.formatDate(subscription.endDate)}</td>
+                                <td>${subscription.startTime} - ${subscription.endTime}</td>
+                                <td>${remainingTime}</td>
+                                <td>
+                                    <span class="status-badge ${status}">${status}</span>
+                                </td>
+                                <td>
+                                    <button onclick="removeSubscription('${subscription.id}')" class="action-btn">
+                                        Remove
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `;
     }
 
     // Render notifications
@@ -427,16 +430,14 @@ Revenue: ₹${subscription.amount}
     // Update revenue display
     updateRevenue() {
         const { dailyRevenue, weeklyRevenue, monthlyRevenue } = this.calculateRevenue();
+        const totalRevenue = this.subscriptions.reduce((total, sub) => total + sub.amount, 0);
+        const activeSubscriptions = this.subscriptions.filter(sub => this.getSubscriptionStatus(sub) === 'active').length;
+        const expiringSoon = this.subscriptions.filter(sub => this.getSubscriptionStatus(sub) === 'expiring').length;
         
-        document.getElementById('dailyRevenue').textContent = `₹${dailyRevenue.toFixed(2)}`;
-        document.getElementById('weeklyRevenue').textContent = `₹${weeklyRevenue.toFixed(2)}`;
-        document.getElementById('monthlyRevenue').textContent = `₹${monthlyRevenue.toFixed(2)}`;
-        
-        // Update periods
-        const now = new Date();
-        document.getElementById('dailyPeriod').textContent = now.toLocaleDateString();
-        document.getElementById('weeklyPeriod').textContent = `Week of ${now.toLocaleDateString()}`;
-        document.getElementById('monthlyPeriod').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        // Update KPI cards
+        document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+        document.getElementById('activeSubscriptions').textContent = activeSubscriptions;
+        document.getElementById('expiringSoon').textContent = expiringSoon;
     }
 
     // Add notification
