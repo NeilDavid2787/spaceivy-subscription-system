@@ -28,11 +28,16 @@ class SubscriptionManager {
         const savedNotifications = localStorage.getItem('spaceivy_notifications');
         const savedDate = localStorage.getItem('spaceivy_current_date');
 
+        console.log('Loading data from localStorage...');
+        console.log('Saved subscriptions:', savedSubscriptions);
+        console.log('Saved notifications:', savedNotifications);
+
         if (savedSubscriptions) {
             this.subscriptions = JSON.parse(savedSubscriptions).map(sub => ({
                 ...sub,
                 startDate: new Date(sub.startDate)
             }));
+            console.log('Loaded subscriptions:', this.subscriptions);
         }
 
         if (savedNotifications) {
@@ -40,6 +45,7 @@ class SubscriptionManager {
                 ...notif,
                 timestamp: new Date(notif.timestamp)
             }));
+            console.log('Loaded notifications:', this.notifications);
         }
 
         if (savedDate) {
