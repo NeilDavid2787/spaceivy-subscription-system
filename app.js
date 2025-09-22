@@ -112,6 +112,9 @@ class SubscriptionManager {
         this.renderAll();
         this.resetForm();
         this.showMessage('Subscription added successfully!', 'success');
+        
+        // Ask if user wants to send welcome email
+        this.askForWelcomeEmail(subscription);
     }
 
     validateSubscription(subscription) {
@@ -512,6 +515,87 @@ class SubscriptionManager {
             console.error('Email configuration error:', error);
             alert('Error configuring email: ' + error.message);
         }
+    }
+
+    // Ask for welcome email
+    askForWelcomeEmail(subscription) {
+        const endDate = this.calculateEndDate(subscription.startDate, subscription.duration);
+        const durationText = this.getDurationText(subscription.duration);
+        
+        const message = `🎉 Welcome Email Confirmation\n\n` +
+            `Customer: ${subscription.customerName}\n` +
+            `Plan: ${subscription.planType}\n` +
+            `Duration: ${durationText}\n` +
+            `Amount: ₹${subscription.amount}\n` +
+            `Start Date: ${this.formatDate(subscription.startDate)}\n` +
+            `End Date: ${this.formatDate(endDate)}\n\n` +
+            `Would you like to send a welcome email to ${subscription.email}?`;
+        
+        if (confirm(message)) {
+            this.sendWelcomeEmail(subscription);
+        }
+    }
+
+    // Send welcome email
+    async sendWelcomeEmail(subscription) {
+        const endDate = this.calculateEndDate(subscription.startDate, subscription.duration);
+        const durationText = this.getDurationText(subscription.duration);
+        
+        const subject = `🎉 Welcome to Spaceivy ${subscription.planType} Plan!`;
+        const message = `
+Dear ${subscription.customerName},
+
+Welcome to Spaceivy! We're excited to have you on board with our ${subscription.planType} plan.
+
+Your Subscription Details:
+• Plan: ${subscription.planType}
+• Duration: ${durationText}
+• Amount: ₹${subscription.amount}
+• Start Date: ${this.formatDate(subscription.startDate)}
+• End Date: ${this.formatDate(endDate)}
+
+Important Notes:
+• Your subscription will automatically renew unless cancelled
+• You'll receive reminders 7, 3, and 1 days before expiry
+• For any questions, contact us at spaceivylounge@gmail.com
+• Support: +91 9704259889
+
+Thank you for choosing Spaceivy!
+
+Best regards,
+The Spaceivy Team
+spaceivylounge@gmail.com
+        `;
+
+        try {
+            const emailSent = await this.emailService.sendEmail(
+                subscription.email, 
+                subject, 
+                message, 
+                subscription
+            );
+            
+            if (emailSent) {
+                this.addNotification('email', subscription, 
+                    `📧 Welcome email sent to ${subscription.email}`);
+                this.showMessage('Welcome email sent successfully!', 'success');
+            } else {
+                this.showMessage('Failed to send welcome email', 'error');
+            }
+        } catch (error) {
+            console.error('Welcome email error:', error);
+            this.showMessage('Error sending welcome email', 'error');
+        }
+    }
+
+    // Get duration text
+    getDurationText(days) {
+        if (days === 30) return '30 days (1 month)';
+        if (days === 60) return '60 days (2 months)';
+        if (days === 90) return '90 days (3 months)';
+        if (days === 180) return '180 days (6 months)';
+        if (days === 365) return '365 days (1 year)';
+        return `${days} days`;
     }
 }
 
