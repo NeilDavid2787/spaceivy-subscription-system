@@ -544,6 +544,9 @@ function configureEmail() {
     }
 }
 
+// Make it globally accessible
+window.configureEmail = configureEmail;
+
 // Initialize the application when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     subscriptionManager = new SubscriptionManager();
