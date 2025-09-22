@@ -1,0 +1,523 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="en">\
+<head>\
+    <meta charset="UTF-8">\
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+    <title>Subscription Billing System</title>\
+    <style>\
+        * \{\
+            margin: 0;\
+            padding: 0;\
+            box-sizing: border-box;\
+        \}\
+        \
+        body \{\
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\
+            min-height: 100vh;\
+            padding: 20px;\
+        \}\
+        \
+        .container \{\
+            max-width: 800px;\
+            margin: 0 auto;\
+            background: white;\
+            border-radius: 20px;\
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);\
+            overflow: hidden;\
+        \}\
+        \
+        .header \{\
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);\
+            color: white;\
+            padding: 30px;\
+            text-align: center;\
+        \}\
+        \
+        .header h1 \{\
+            font-size: 2.5em;\
+            margin-bottom: 10px;\
+        \}\
+        \
+        .content \{\
+            padding: 40px;\
+        \}\
+        \
+        .form-section \{\
+            background: #f8f9fa;\
+            border-radius: 15px;\
+            padding: 30px;\
+            margin-bottom: 30px;\
+            border-left: 5px solid #667eea;\
+        \}\
+        \
+        .form-group \{\
+            margin-bottom: 25px;\
+        \}\
+        \
+        label \{\
+            display: block;\
+            margin-bottom: 8px;\
+            font-weight: 600;\
+            color: #2c3e50;\
+            font-size: 1.1em;\
+        \}\
+        \
+        input, select \{\
+            width: 100%;\
+            padding: 15px;\
+            border: 2px solid #e1e8ed;\
+            border-radius: 10px;\
+            font-size: 16px;\
+            transition: all 0.3s ease;\
+        \}\
+        \
+        input:focus, select:focus \{\
+            outline: none;\
+            border-color: #667eea;\
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);\
+        \}\
+        \
+        .btn \{\
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\
+            color: white;\
+            border: none;\
+            padding: 15px 30px;\
+            border-radius: 10px;\
+            font-size: 18px;\
+            font-weight: 600;\
+            cursor: pointer;\
+            transition: all 0.3s ease;\
+            margin-right: 10px;\
+            margin-bottom: 10px;\
+        \}\
+        \
+        .btn:hover \{\
+            transform: translateY(-2px);\
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);\
+        \}\
+        \
+        .btn-secondary \{\
+            background: linear-gradient(135deg, #95e1d3 0%, #fce38a 100%);\
+            color: #2c3e50;\
+        \}\
+        \
+        .subscriptions \{\
+            margin-top: 30px;\
+        \}\
+        \
+        .subscription-card \{\
+            background: white;\
+            border: 2px solid #e1e8ed;\
+            border-radius: 15px;\
+            padding: 25px;\
+            margin-bottom: 20px;\
+            transition: all 0.3s ease;\
+            position: relative;\
+        \}\
+        \
+        .subscription-card:hover \{\
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);\
+            transform: translateY(-2px);\
+        \}\
+        \
+        .subscription-card.expiring-soon \{\
+            border-color: #e74c3c;\
+            background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);\
+        \}\
+        \
+        .subscription-card.expiring-soon::before \{\
+            content: "\uc0\u9888 \u65039  Expires Soon";\
+            position: absolute;\
+            top: -10px;\
+            right: 20px;\
+            background: #e74c3c;\
+            color: white;\
+            padding: 5px 15px;\
+            border-radius: 20px;\
+            font-size: 12px;\
+            font-weight: 600;\
+        \}\
+        \
+        .subscription-info \{\
+            display: grid;\
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\
+            gap: 15px;\
+            margin-bottom: 15px;\
+        \}\
+        \
+        .info-item \{\
+            padding: 10px 15px;\
+            background: #f8f9fa;\
+            border-radius: 8px;\
+        \}\
+        \
+        .info-label \{\
+            font-size: 12px;\
+            color: #6c757d;\
+            text-transform: uppercase;\
+            letter-spacing: 1px;\
+            margin-bottom: 5px;\
+        \}\
+        \
+        .info-value \{\
+            font-size: 16px;\
+            font-weight: 600;\
+            color: #2c3e50;\
+        \}\
+        \
+        .status \{\
+            display: inline-block;\
+            padding: 5px 15px;\
+            border-radius: 20px;\
+            font-size: 12px;\
+            font-weight: 600;\
+            text-transform: uppercase;\
+            letter-spacing: 1px;\
+        \}\
+        \
+        .status.active \{\
+            background: #d4edda;\
+            color: #155724;\
+        \}\
+        \
+        .status.expiring \{\
+            background: #fff3cd;\
+            color: #856404;\
+        \}\
+        \
+        .status.expired \{\
+            background: #f8d7da;\
+            color: #721c24;\
+        \}\
+        \
+        .notification-log \{\
+            margin-top: 20px;\
+            padding: 20px;\
+            background: #f8f9fa;\
+            border-radius: 10px;\
+            max-height: 200px;\
+            overflow-y: auto;\
+        \}\
+        \
+        .notification-item \{\
+            padding: 10px;\
+            margin-bottom: 10px;\
+            background: white;\
+            border-radius: 5px;\
+            border-left: 3px solid #667eea;\
+            font-size: 14px;\
+        \}\
+        \
+        .timestamp \{\
+            color: #6c757d;\
+            font-size: 12px;\
+        \}\
+        \
+        .demo-note \{\
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);\
+            padding: 20px;\
+            border-radius: 10px;\
+            margin-bottom: 20px;\
+            text-align: center;\
+            font-weight: 600;\
+            color: #2d3436;\
+        \}\
+    </style>\
+</head>\
+<body>\
+    <div class="container">\
+        <div class="header">\
+            <h1>\uc0\u55357 \u56596  Subscription Billing System</h1>\
+            <p>Automated notifications for subscription renewals</p>\
+        </div>\
+        \
+        <div class="content">\
+            <div class="demo-note">\
+                \uc0\u55357 \u56551  Demo Mode: Email and SMS notifications are simulated in the notification log below\
+            </div>\
+            \
+            <div class="form-section">\
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Add New Subscription</h2>\
+                <form id="subscriptionForm">\
+                    <div class="form-group">\
+                        <label for="customerName">Customer Name</label>\
+                        <input type="text" id="customerName" required>\
+                    </div>\
+                    \
+                    <div class="form-group">\
+                        <label for="email">Email Address</label>\
+                        <input type="email" id="email" required>\
+                    </div>\
+                    \
+                    <div class="form-group">\
+                        <label for="phone">Phone Number</label>\
+                        <input type="tel" id="phone" required>\
+                    </div>\
+                    \
+                    <div class="form-group">\
+                        <label for="startDate">Subscription Start Date</label>\
+                        <input type="date" id="startDate" required>\
+                    </div>\
+                    \
+                    <div class="form-group">\
+                        <label for="duration">Subscription Duration</label>\
+                        <select id="duration" required>\
+                            <option value="">Select duration</option>\
+                            <option value="30">30 days</option>\
+                            <option value="60">60 days</option>\
+                            <option value="90">90 days</option>\
+                            <option value="365">1 year</option>\
+                        </select>\
+                    </div>\
+                    \
+                    <div class="form-group">\
+                        <label for="amount">Subscription Amount ($)</label>\
+                        <input type="number" id="amount" step="0.01" min="0" required>\
+                    </div>\
+                    \
+                    <button type="submit" class="btn">Add Subscription</button>\
+                </form>\
+            </div>\
+            \
+            <div class="form-section">\
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">System Controls</h2>\
+                <button onclick="checkExpiringSubscriptions()" class="btn btn-secondary">Check Expiring Subscriptions</button>\
+                <button onclick="simulateTimeAdvance()" class="btn btn-secondary">\uc0\u9200  Simulate Time Advance (7 days)</button>\
+                <button onclick="clearNotifications()" class="btn btn-secondary">Clear Notifications</button>\
+            </div>\
+            \
+            <div class="subscriptions">\
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Active Subscriptions</h2>\
+                <div id="subscriptionsList"></div>\
+            </div>\
+            \
+            <div class="notification-log">\
+                <h3 style="margin-bottom: 15px; color: #2c3e50;">\uc0\u55357 \u56561  Notification Log</h3>\
+                <div id="notificationsList"></div>\
+            </div>\
+        </div>\
+    </div>\
+\
+    <script>\
+        let subscriptions = [];\
+        let notifications = [];\
+        let currentDate = new Date();\
+\
+        // Sample data for demonstration\
+        function loadSampleData() \{\
+            const sampleSubscription = \{\
+                id: 'SUB-001',\
+                customerName: 'John Doe',\
+                email: 'john@example.com',\
+                phone: '+1-555-123-4567',\
+                startDate: new Date(currentDate.getTime() - 25 * 24 * 60 * 60 * 1000), // 25 days ago\
+                duration: 30,\
+                amount: 29.99,\
+                status: 'active'\
+            \};\
+            subscriptions.push(sampleSubscription);\
+            renderSubscriptions();\
+        \}\
+\
+        function calculateEndDate(startDate, duration) \{\
+            const endDate = new Date(startDate);\
+            endDate.setDate(endDate.getDate() + parseInt(duration));\
+            return endDate;\
+        \}\
+\
+        function getDaysUntilExpiry(startDate, duration) \{\
+            const endDate = calculateEndDate(startDate, duration);\
+            const timeDiff = endDate.getTime() - currentDate.getTime();\
+            return Math.ceil(timeDiff / (1000 * 3600 * 24));\
+        \}\
+\
+        function getSubscriptionStatus(startDate, duration) \{\
+            const daysUntilExpiry = getDaysUntilExpiry(startDate, duration);\
+            if (daysUntilExpiry < 0) return 'expired';\
+            if (daysUntilExpiry <= 7) return 'expiring';\
+            return 'active';\
+        \}\
+\
+        function formatDate(date) \{\
+            return date.toLocaleDateString('en-US', \{\
+                year: 'numeric',\
+                month: 'short',\
+                day: 'numeric'\
+            \});\
+        \}\
+\
+        function addNotification(type, subscription, message) \{\
+            const notification = \{\
+                id: Date.now(),\
+                timestamp: new Date(currentDate),\
+                type: type,\
+                subscription: subscription,\
+                message: message\
+            \};\
+            notifications.unshift(notification);\
+            renderNotifications();\
+        \}\
+\
+        function sendNotification(subscription, daysUntilExpiry) \{\
+            const emailMessage = `\uc0\u55357 \u56551  EMAIL to $\{subscription.email\}: Your subscription expires in $\{daysUntilExpiry\} days. Renew now to continue your service.`;\
+            const smsMessage = `\uc0\u55357 \u56561  SMS to $\{subscription.phone\}: Subscription expires in $\{daysUntilExpiry\} days. Amount: $$\{subscription.amount\}`;\
+            \
+            addNotification('email', subscription, emailMessage);\
+            addNotification('sms', subscription, smsMessage);\
+        \}\
+\
+        function checkExpiringSubscriptions() \{\
+            let notificationsSent = 0;\
+            \
+            subscriptions.forEach(subscription => \{\
+                const daysUntilExpiry = getDaysUntilExpiry(subscription.startDate, subscription.duration);\
+                \
+                // Send notifications 7, 3, and 1 days before expiry\
+                if (daysUntilExpiry === 7 || daysUntilExpiry === 3 || daysUntilExpiry === 1) \{\
+                    sendNotification(subscription, daysUntilExpiry);\
+                    notificationsSent++;\
+                \}\
+                \
+                // Send expiry notification\
+                if (daysUntilExpiry === 0) \{\
+                    const expiredMessage = `\uc0\u9888 \u65039  EXPIRED: $\{subscription.customerName\}'s subscription has expired today. Amount due: $$\{subscription.amount\}`;\
+                    addNotification('expiry', subscription, expiredMessage);\
+                    notificationsSent++;\
+                \}\
+            \});\
+            \
+            if (notificationsSent === 0) \{\
+                addNotification('system', null, '\uc0\u9989  System check complete. No notifications needed at this time.');\
+            \}\
+            \
+            renderSubscriptions();\
+        \}\
+\
+        function simulateTimeAdvance() \{\
+            currentDate.setDate(currentDate.getDate() + 7);\
+            addNotification('system', null, `\uc0\u9200  Time advanced by 7 days. Current date: $\{formatDate(currentDate)\}`);\
+            checkExpiringSubscriptions();\
+            renderSubscriptions();\
+        \}\
+\
+        function clearNotifications() \{\
+            notifications = [];\
+            renderNotifications();\
+        \}\
+\
+        function renderSubscriptions() \{\
+            const container = document.getElementById('subscriptionsList');\
+            \
+            if (subscriptions.length === 0) \{\
+                container.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 40px;">No subscriptions added yet.</p>';\
+                return;\
+            \}\
+\
+            container.innerHTML = subscriptions.map(subscription => \{\
+                const endDate = calculateEndDate(subscription.startDate, subscription.duration);\
+                const daysUntilExpiry = getDaysUntilExpiry(subscription.startDate, subscription.duration);\
+                const status = getSubscriptionStatus(subscription.startDate, subscription.duration);\
+                const isExpiringSoon = daysUntilExpiry <= 7 && daysUntilExpiry >= 0;\
+\
+                return `\
+                    <div class="subscription-card $\{isExpiringSoon ? 'expiring-soon' : ''\}">\
+                        <div class="subscription-info">\
+                            <div class="info-item">\
+                                <div class="info-label">Customer</div>\
+                                <div class="info-value">$\{subscription.customerName\}</div>\
+                            </div>\
+                            <div class="info-item">\
+                                <div class="info-label">Email</div>\
+                                <div class="info-value">$\{subscription.email\}</div>\
+                            </div>\
+                            <div class="info-item">\
+                                <div class="info-label">Phone</div>\
+                                <div class="info-value">$\{subscription.phone\}</div>\
+                            </div>\
+                            <div class="info-item">\
+                                <div class="info-label">Start Date</div>\
+                                <div class="info-value">$\{formatDate(subscription.startDate)\}</div>\
+                            </div>\
+                            <div class="info-item">\
+                                <div class="info-label">End Date</div>\
+                                <div class="info-value">$\{formatDate(endDate)\}</div>\
+                            </div>\
+                            <div class="info-item">\
+                                <div class="info-label">Amount</div>\
+                                <div class="info-value">$$\{subscription.amount\}</div>\
+                            </div>\
+                            <div class="info-item">\
+                                <div class="info-label">Days Remaining</div>\
+                                <div class="info-value">$\{daysUntilExpiry > 0 ? daysUntilExpiry : 'Expired'\}</div>\
+                            </div>\
+                            <div class="info-item">\
+                                <div class="info-label">Status</div>\
+                                <div class="info-value">\
+                                    <span class="status $\{status\}">$\{status\}</span>\
+                                </div>\
+                            </div>\
+                        </div>\
+                    </div>\
+                `;\
+            \}).join('');\
+        \}\
+\
+        function renderNotifications() \{\
+            const container = document.getElementById('notificationsList');\
+            \
+            if (notifications.length === 0) \{\
+                container.innerHTML = '<p style="text-align: center; color: #6c757d;">No notifications yet.</p>';\
+                return;\
+            \}\
+\
+            container.innerHTML = notifications.map(notification => `\
+                <div class="notification-item">\
+                    <div>$\{notification.message\}</div>\
+                    <div class="timestamp">$\{notification.timestamp.toLocaleString()\}</div>\
+                </div>\
+            `).join('');\
+        \}\
+\
+        document.getElementById('subscriptionForm').addEventListener('submit', function(e) \{\
+            e.preventDefault();\
+            \
+            const subscription = \{\
+                id: 'SUB-' + Date.now().toString().substr(-6),\
+                customerName: document.getElementById('customerName').value,\
+                email: document.getElementById('email').value,\
+                phone: document.getElementById('phone').value,\
+                startDate: new Date(document.getElementById('startDate').value),\
+                duration: parseInt(document.getElementById('duration').value),\
+                amount: parseFloat(document.getElementById('amount').value),\
+                status: 'active'\
+            \};\
+            \
+            subscriptions.push(subscription);\
+            addNotification('system', subscription, `\uc0\u9989  New subscription added for $\{subscription.customerName\}`);\
+            renderSubscriptions();\
+            \
+            // Reset form\
+            this.reset();\
+        \});\
+\
+        // Set default date to today\
+        document.getElementById('startDate').valueAsDate = new Date();\
+\
+        // Auto-check for expiring subscriptions every 30 seconds (in a real system, this would be a server-side cron job)\
+        setInterval(checkExpiringSubscriptions, 30000);\
+\
+        // Load sample data on page load\
+        loadSampleData();\
+        renderSubscriptions();\
+        renderNotifications();\
+    </script>\
+</body>\
+</html>}

@@ -1,0 +1,35 @@
+{
+  "name": "spaceivy-subscription-system",
+  "version": "1.0.0",
+  "description": "A complete subscription billing and management system with automated notifications",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 3000 -o",
+    "dev": "npx live-server --port=3000 --open=/index.html",
+    "build": "echo 'No build process needed for this static app'",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": [
+    "subscription",
+    "billing",
+    "management",
+    "notifications",
+    "javascript",
+    "html",
+    "css"
+  ],
+  "author": "Spaceivy Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spaceivy/subscription-system.git"
+  },
+  "bugs": {
+    "url": "https://github.com/spaceivy/subscription-system/issues"
+  },
+  "homepage": "https://github.com/spaceivy/subscription-system#readme"
+}

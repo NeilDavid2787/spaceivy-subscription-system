@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spaceivy Subscription Billing System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-rocket"></i> Spaceivy Subscription System</h1>
+                <p>Automated billing and renewal management</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Demo Notice -->
+            <div class="demo-notice">
+                <i class="fas fa-info-circle"></i>
+                <span>Email configured for spaceivylounge@gmail.com. Enter your Gmail app password below to enable real email sending.</span>
+            </div>
+
+            <!-- Email Configuration -->
+            <div class="config-section">
+                <h2><i class="fas fa-cog"></i> Email Configuration</h2>
+                <div class="config-form">
+                    <div class="form-group">
+                        <label for="gmailPassword">
+                            <i class="fas fa-key"></i> Gmail App Password
+                        </label>
+                        <input type="password" id="gmailPassword" placeholder="Enter your Gmail app password">
+                        <small>Get this from Google Account → Security → App passwords</small>
+                    </div>
+                    <button onclick="alert('Button works!'); configureEmail();" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Configure Email
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Subscription Form -->
+            <section class="form-section">
+                <h2><i class="fas fa-plus-circle"></i> Add New Subscription</h2>
+                <form id="subscriptionForm" class="subscription-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customerName">
+                                <i class="fas fa-user"></i> Customer Name
+                            </label>
+                            <input type="text" id="customerName" required placeholder="Enter customer name">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <input type="email" id="email" required placeholder="customer@example.com">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">
+                                <i class="fas fa-phone"></i> Phone Number
+                            </label>
+                            <input type="tel" id="phone" required placeholder="+91 98765 43210">
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">
+                                <i class="fas fa-rupee-sign"></i> Subscription Amount (₹)
+                            </label>
+                            <input type="number" id="amount" step="0.01" min="0" required placeholder="2999">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startDate">
+                                <i class="fas fa-calendar-alt"></i> Start Date
+                            </label>
+                            <input type="date" id="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="duration">
+                                <i class="fas fa-clock"></i> Duration
+                            </label>
+                            <select id="duration" required>
+                                <option value="">Select duration</option>
+                                <option value="30">30 days</option>
+                                <option value="60">60 days</option>
+                                <option value="90">90 days</option>
+                                <option value="180">6 months</option>
+                                <option value="365">1 year</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="planType">
+                            <i class="fas fa-tag"></i> Plan Type
+                        </label>
+                        <select id="planType" required>
+                            <option value="">Select plan type</option>
+                            <option value="basic">Basic Plan</option>
+                            <option value="premium">Premium Plan</option>
+                            <option value="enterprise">Enterprise Plan</option>
+                            <option value="custom">Custom Plan</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Subscription
+                    </button>
+                </form>
+            </section>
+
+            <!-- System Controls -->
+            <section class="controls-section">
+                <h2><i class="fas fa-cogs"></i> System Controls</h2>
+                <div class="controls-grid">
+                    <button onclick="checkExpiringSubscriptions()" class="btn btn-secondary">
+                        <i class="fas fa-search"></i> Check Expiring
+                    </button>
+                    <button onclick="simulateTimeAdvance()" class="btn btn-secondary">
+                        <i class="fas fa-forward"></i> Advance Time (7 days)
+                    </button>
+                    <button onclick="exportData()" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                    <button onclick="clearNotifications()" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i> Clear Notifications
+                    </button>
+                </div>
+            </section>
+
+            <!-- Statistics Dashboard -->
+            <section class="stats-section">
+                <h2><i class="fas fa-chart-bar"></i> Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="totalSubscriptions">0</div>
+                            <div class="stat-label">Total Subscriptions</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="expiringSoon">0</div>
+                            <div class="stat-label">Expiring Soon</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="monthlyRevenue">$0</div>
+                            <div class="stat-label">Monthly Revenue</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="notificationsSent">0</div>
+                            <div class="stat-label">Notifications Sent</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Subscriptions List -->
+            <section class="subscriptions-section">
+                <h2><i class="fas fa-list"></i> Active Subscriptions</h2>
+                <div id="subscriptionsList" class="subscriptions-list">
+                    <!-- Subscriptions will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Notifications Log -->
+            <section class="notifications-section">
+                <h2><i class="fas fa-bell"></i> Notification Log</h2>
+                <div id="notificationsList" class="notifications-list">
+                    <!-- Notifications will be rendered here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="email-service.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+e if
