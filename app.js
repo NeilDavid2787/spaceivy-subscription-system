@@ -184,9 +184,10 @@ Revenue: ₹${subscription.amount}
             console.log('📧 Customer Email:', customerMessage);
             console.log('📧 Admin Email:', adminMessage);
             
-            this.showNotification('Emails sent to customer and admin', 'info');
+            this.showNotification('Emails logged to console - check browser console', 'info');
         } catch (error) {
             console.error('Email error:', error);
+            this.showNotification('Email simulation failed', 'error');
         }
     }
 
