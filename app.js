@@ -68,6 +68,13 @@ class SubscriptionManager {
     }
 
     setupEmailConfiguration() {
+        // Check if email is already configured
+        const isEmailConfigured = localStorage.getItem('spaceivy_email_configured');
+        if (isEmailConfigured === 'true') {
+            console.log('Email already configured, skipping setup');
+            return;
+        }
+
         const configureBtn = document.getElementById('configureEmailBtn');
         console.log('Looking for configureEmailBtn:', configureBtn);
         if (configureBtn) {
@@ -78,7 +85,7 @@ class SubscriptionManager {
             });
             console.log('Event listener added successfully');
         } else {
-            console.error('configureEmailBtn not found!');
+            console.log('configureEmailBtn not found - email may already be configured');
         }
     }
 
@@ -472,6 +479,9 @@ class SubscriptionManager {
             console.log('About to configure email service...');
             this.emailService.configure({ password: password });
             console.log('Email service configured, isConfigured:', this.emailService.isConfigured);
+            
+            // Mark email as configured in localStorage
+            localStorage.setItem('spaceivy_email_configured', 'true');
             
             console.log('Showing success message...');
             this.showMessage('Email service configured successfully!', 'success');
