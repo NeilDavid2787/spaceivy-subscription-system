@@ -50,23 +50,75 @@ class SubscriptionManager {
 
     // Event Listeners
     setupEventListeners() {
-        document.getElementById('subscriptionForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.addSubscription();
-        });
+        // Form submission
+        const form = document.getElementById('subscriptionForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.addSubscription();
+            });
+        }
 
-        // Auto-calculate end date based on plan type
-        document.getElementById('planType').addEventListener('change', () => {
-            this.calculateEndDate();
-        });
+        // Plan type change
+        const planType = document.getElementById('planType');
+        if (planType) {
+            planType.addEventListener('change', () => {
+                this.calculateEndDate();
+            });
+        }
 
-        // Auto-detect plan type based on time range
-        document.getElementById('startTime').addEventListener('change', () => {
-            this.detectPlanType();
-        });
+        // Time change detection
+        const startTime = document.getElementById('startTime');
+        const endTime = document.getElementById('endTime');
+        
+        if (startTime) {
+            startTime.addEventListener('change', () => {
+                this.detectPlanType();
+            });
+        }
+        
+        if (endTime) {
+            endTime.addEventListener('change', () => {
+                this.detectPlanType();
+            });
+        }
 
-        document.getElementById('endTime').addEventListener('change', () => {
-            this.detectPlanType();
+        // Add click listeners to all buttons
+        this.setupButtonListeners();
+    }
+
+    // Setup button listeners
+    setupButtonListeners() {
+        // Add event listener to all buttons with data-action
+        document.addEventListener('click', (e) => {
+            const button = e.target.closest('button[data-action]');
+            if (!button) return;
+
+            const action = button.getAttribute('data-action');
+            console.log('Button clicked:', action);
+
+            switch(action) {
+                case 'check-expiring':
+                    this.checkExpiringSubscriptions();
+                    break;
+                case 'advance-time':
+                    this.simulateTimeAdvance();
+                    break;
+                case 'export-excel':
+                    this.exportToExcel();
+                    break;
+                case 'clear-notifications':
+                    this.clearNotifications();
+                    break;
+                case 'configure-email':
+                    this.configureEmail();
+                    break;
+                case 'configure-sheets':
+                    this.configureGoogleSheets();
+                    break;
+                default:
+                    console.log('Unknown action:', action);
+            }
         });
     }
 
@@ -484,16 +536,22 @@ Revenue: ₹${subscription.amount}
     checkEmailConfiguration() {
         const isConfigured = localStorage.getItem('spaceivy_email_configured');
         if (isConfigured === 'true') {
-            document.getElementById('emailConfig').style.display = 'none';
+            console.log('Email already configured');
         } else {
-            document.getElementById('emailConfig').style.display = 'block';
+            console.log('Email not configured');
         }
     }
 
     configureEmail() {
-        const password = document.getElementById('gmailPassword').value;
+        const password = prompt('Enter your Gmail App Password:\n\nTo get your app password:\n1. Go to Google Account settings\n2. Enable 2-Step Verification\n3. Generate App Password for "Mail"\n4. Enter the 16-character password here');
+        
         if (!password) {
-            this.showMessage('Please enter your Gmail app password', 'error');
+            this.showMessage('Email configuration cancelled', 'info');
+            return;
+        }
+
+        if (password.length < 16) {
+            this.showMessage('Please enter a valid 16-character Gmail app password', 'error');
             return;
         }
 
@@ -501,8 +559,8 @@ Revenue: ₹${subscription.amount}
         localStorage.setItem('spaceivy_email_configured', 'true');
         localStorage.setItem('spaceivy_email_password', password);
         
-        this.showMessage('Email configured successfully!', 'success');
-        document.getElementById('emailConfig').style.display = 'none';
+        this.showMessage('Email configured successfully! You can now send real emails.', 'success');
+        console.log('Email service configured');
     }
 
     // Export to Excel
@@ -587,11 +645,17 @@ Revenue: ₹${subscription.amount}
     }
 
     configureGoogleSheets() {
-        const apiKey = prompt('Enter your Google Sheets API Key:');
-        if (apiKey) {
-            this.googleSheetsService.configure({ apiKey: apiKey });
-            this.showMessage('Google Sheets configured!', 'success');
+        const apiKey = prompt('Enter your Google Sheets API Key:\n\nTo get your API key:\n1. Go to Google Cloud Console\n2. Create a new project or select existing\n3. Enable Google Sheets API\n4. Create credentials (API Key)\n5. Copy the API key here');
+        
+        if (!apiKey) {
+            this.showMessage('Google Sheets configuration cancelled', 'info');
+            return;
         }
+
+        this.googleSheetsService.configure({ apiKey: apiKey });
+        localStorage.setItem('spaceivy_google_sheets_api_key', apiKey);
+        this.showMessage('Google Sheets configured! Data will sync automatically.', 'success');
+        console.log('Google Sheets configured');
     }
 
     // Auto-check

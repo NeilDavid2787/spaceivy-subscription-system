@@ -78,11 +78,7 @@
                 </ul>
             </div>
             
-            <div class="premium-card">
-                <div class="premium-title">Get Premium Features</div>
-                <div class="premium-desc">Unlock advanced analytics and automation features</div>
-                <button class="premium-btn">Get Premium Now</button>
-            </div>
+            <!-- Premium card removed for personal CRM -->
         </aside>
 
         <!-- Main Content -->
@@ -303,22 +299,22 @@
                 <div class="form-card">
                     <h2 class="form-title">System Controls</h2>
                     <div class="controls-grid">
-                        <button onclick="checkExpiringSubscriptions()" class="btn btn-secondary">
+                        <button class="btn btn-secondary" data-action="check-expiring">
                             <i class="fas fa-search"></i> Check Expiring
                         </button>
-                        <button onclick="simulateTimeAdvance()" class="btn btn-secondary">
+                        <button class="btn btn-secondary" data-action="advance-time">
                             <i class="fas fa-forward"></i> Advance Time
                         </button>
-                        <button onclick="exportToExcel()" class="btn btn-success">
+                        <button class="btn btn-success" data-action="export-excel">
                             <i class="fas fa-file-excel"></i> Export Excel
                         </button>
-                        <button onclick="clearNotifications()" class="btn btn-secondary">
+                        <button class="btn btn-secondary" data-action="clear-notifications">
                             <i class="fas fa-trash"></i> Clear Logs
                         </button>
-                        <button onclick="configureEmail()" class="btn btn-secondary">
+                        <button class="btn btn-secondary" data-action="configure-email">
                             <i class="fas fa-envelope"></i> Email Setup
                         </button>
-                        <button onclick="configureGoogleSheets()" class="btn btn-secondary">
+                        <button class="btn btn-secondary" data-action="configure-sheets">
                             <i class="fas fa-table"></i> Google Sheets
                         </button>
                     </div>
