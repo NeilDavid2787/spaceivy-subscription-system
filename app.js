@@ -10,6 +10,7 @@ class SubscriptionManager {
         this.currentDate = new Date();
         this.emailService = new EmailService();
         this.whatsappService = new WhatsAppService();
+        this.googleSheetsService = new GoogleSheetsService();
         this.init();
     }
 
@@ -171,6 +172,9 @@ class SubscriptionManager {
 
         this.subscriptions.push(subscription);
         this.saveData();
+        
+        // Sync to Google Sheets
+        this.syncToGoogleSheets();
         
         this.addNotification('system', subscription, 
             `✅ New subscription added for ${subscription.customerName} (${subscription.planType} plan)`);
@@ -401,6 +405,11 @@ class SubscriptionManager {
                                 <span class="status ${status}">${status}</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="subscription-actions">
+                        <button onclick="removeSubscription('${subscription.id}')" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
                     </div>
                 </div>
             `;
@@ -671,6 +680,70 @@ Welcome email sent: ${emailSent ? 'Yes' : 'No'}
         if (days === 365) return '365 days (1 year)';
         return `${days} days`;
     }
+
+    // Remove subscription
+    removeSubscription(subscriptionId) {
+        if (confirm('Are you sure you want to remove this subscription? This action cannot be undone.')) {
+            const subscription = this.subscriptions.find(sub => sub.id === subscriptionId);
+            if (subscription) {
+                this.subscriptions = this.subscriptions.filter(sub => sub.id !== subscriptionId);
+                this.saveData();
+                
+                // Sync to Google Sheets
+                this.syncToGoogleSheets();
+                
+                this.renderAll();
+                this.addNotification('system', null, 
+                    `🗑️ Subscription removed for ${subscription.customerName} (${subscription.planType} plan)`);
+                this.showMessage('Subscription removed successfully!', 'success');
+            }
+        }
+    }
+
+    // Sync data to Google Sheets
+    async syncToGoogleSheets() {
+        if (this.googleSheetsService.isConfigured) {
+            try {
+                const success = await this.googleSheetsService.syncSubscriptions(this.subscriptions);
+                if (success) {
+                    console.log('✅ Data synced to Google Sheets');
+                } else {
+                    console.log('⚠️ Failed to sync to Google Sheets');
+                }
+            } catch (error) {
+                console.error('Google Sheets sync error:', error);
+            }
+        } else {
+            console.log('Google Sheets not configured - data saved locally only');
+        }
+    }
+
+    // Configure Google Sheets
+    configureGoogleSheets() {
+        const apiKey = prompt('Enter your Google Sheets API Key:');
+        if (apiKey) {
+            this.googleSheetsService.configure({ apiKey: apiKey });
+            localStorage.setItem('spaceivy_google_sheets_api_key', apiKey);
+            this.showMessage('Google Sheets configured! Creating spreadsheet...', 'info');
+            this.createGoogleSpreadsheet();
+        }
+    }
+
+    // Create Google Spreadsheet
+    async createGoogleSpreadsheet() {
+        try {
+            const result = await this.googleSheetsService.createSpreadsheet('Spaceivy Subscriptions');
+            if (result) {
+                localStorage.setItem('spaceivy_google_sheets_id', result.spreadsheetId);
+                this.showMessage(`Google Spreadsheet created! <a href="${result.spreadsheetUrl}" target="_blank">Open Spreadsheet</a>`, 'success');
+                // Sync existing data
+                this.syncToGoogleSheets();
+            }
+        } catch (error) {
+            console.error('Error creating spreadsheet:', error);
+            this.showMessage('Failed to create Google Spreadsheet', 'error');
+        }
+    }
 }
 
 // Global functions for button clicks
@@ -690,6 +763,19 @@ function clearNotifications() {
 
 function exportData() {
     subscriptionManager.exportData();
+}
+
+function removeSubscription(subscriptionId) {
+    subscriptionManager.removeSubscription(subscriptionId);
+}
+
+function refreshNotifications() {
+    subscriptionManager.renderNotifications();
+    subscriptionManager.showMessage('Notifications refreshed!', 'info');
+}
+
+function configureGoogleSheets() {
+    subscriptionManager.configureGoogleSheets();
 }
 
 // Make configureEmail globally accessible

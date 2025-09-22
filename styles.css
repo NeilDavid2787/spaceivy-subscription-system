@@ -548,6 +548,31 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+/* Subscription Actions */
+.subscription-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
 /* Success/Error Messages */
 .message {
     padding: 15px 20px;
