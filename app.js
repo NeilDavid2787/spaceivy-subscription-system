@@ -47,6 +47,19 @@ class SimpleCRM {
         document.getElementById('endTime').addEventListener('change', () => {
             this.detectPlanType();
         });
+
+        // Discount calculation
+        document.getElementById('amount').addEventListener('input', () => {
+            this.calculateFinalAmount();
+        });
+
+        document.getElementById('discount').addEventListener('input', () => {
+            this.calculateFinalAmount();
+        });
+
+        document.getElementById('planType').addEventListener('change', () => {
+            this.calculateFinalAmount();
+        });
     }
 
     // Parse time string to minutes (from your calculator)
@@ -126,6 +139,53 @@ class SimpleCRM {
         // Auto-fill the plan type and amount
         document.getElementById('planType').value = calculation.billingPlan;
         document.getElementById('amount').value = calculation.totalAmount;
+        
+        // Recalculate final amount after auto-filling
+        this.calculateFinalAmount();
+    }
+
+    // Calculate final amount with discount
+    calculateFinalAmount() {
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        const planType = document.getElementById('planType').value;
+        
+        let finalAmount = amount;
+        
+        // Only apply discount for monthly plans
+        if (planType === 'monthly' && discount > 0) {
+            const discountAmount = (amount * discount) / 100;
+            finalAmount = amount - discountAmount;
+        }
+        
+        // Update the final amount field
+        document.getElementById('finalAmount').value = finalAmount.toFixed(2);
+        
+        // Visual feedback for discount
+        const discountField = document.getElementById('discount');
+        const finalAmountField = document.getElementById('finalAmount');
+        
+        if (planType !== 'monthly') {
+            discountField.disabled = true;
+            discountField.value = '';
+            discountField.placeholder = 'Only for monthly plans';
+            discountField.style.backgroundColor = '#f8f9fa';
+            discountField.style.color = '#999';
+        } else {
+            discountField.disabled = false;
+            discountField.placeholder = 'e.g., 10';
+            discountField.style.backgroundColor = '';
+            discountField.style.color = '';
+        }
+        
+        // Highlight final amount if discount is applied
+        if (planType === 'monthly' && discount > 0) {
+            finalAmountField.style.backgroundColor = '#f0fdf4';
+            finalAmountField.style.borderColor = '#059669';
+        } else {
+            finalAmountField.style.backgroundColor = '#f8f9fa';
+            finalAmountField.style.borderColor = '';
+        }
     }
 
     // Calculate expiry date based on plan type and start date/time
@@ -209,13 +269,19 @@ class SimpleCRM {
             expiryDate = this.calculateExpiryDate(startDate, startTime, endTime, planType);
         }
         
+        const originalAmount = parseFloat(document.getElementById('amount').value);
+        const finalAmount = parseFloat(document.getElementById('finalAmount').value);
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        
         const formData = {
             id: 'SUB-' + Date.now().toString().substr(-6),
             customerName: document.getElementById('customerName').value.trim(),
             whatsappNumber: document.getElementById('whatsappNumber').value.trim(),
             email: document.getElementById('email').value.trim(),
             planType: planType,
-            amount: parseFloat(document.getElementById('amount').value),
+            originalAmount: originalAmount,
+            discount: discount,
+            amount: finalAmount, // Store the final amount after discount
             startDate: new Date(startDate),
             startTime: startTime,
             endTime: endTime,
@@ -280,6 +346,12 @@ class SimpleCRM {
         const expiryTime = subscription.expiryDate ? new Date(subscription.expiryDate).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'}) : '';
         const expiryType = (subscription.endDate || subscription.endTimeManual) ? 'Manually Set' : 'Auto-calculated';
         
+        const discountInfo = subscription.discount > 0 ? 
+            `• Original Amount: ₹${subscription.originalAmount || subscription.amount}
+• Discount: ${subscription.discount}% off
+• Final Amount: ₹${subscription.amount}` : 
+            `• Amount: ₹${subscription.amount}`;
+        
         const customerMessage = `
 Dear ${subscription.customerName},
 
@@ -287,7 +359,7 @@ Thank you for subscribing to Spaceivy!
 
 Subscription Details:
 • Plan: ${subscription.planType}
-• Amount: ₹${subscription.amount}
+${discountInfo}
 • Start Date: ${this.formatDate(subscription.startDate)}
 • Time: ${subscription.startTime} - ${subscription.endTime}
 • Expiry Date: ${expiryDate} ${expiryTime}
@@ -300,6 +372,12 @@ Spaceivy Team
         `;
 
         // Admin email
+        const adminDiscountInfo = subscription.discount > 0 ? 
+            `Original Amount: ₹${subscription.originalAmount || subscription.amount}
+Discount: ${subscription.discount}% off (₹${((subscription.originalAmount || subscription.amount) * subscription.discount / 100).toFixed(2)})
+Final Amount: ₹${subscription.amount}` : 
+            `Amount: ₹${subscription.amount}`;
+        
         const adminMessage = `
 New Subscription Created:
 
@@ -307,7 +385,7 @@ Customer: ${subscription.customerName}
 Email: ${subscription.email}
 WhatsApp: ${subscription.whatsappNumber}
 Plan: ${subscription.planType}
-Amount: ₹${subscription.amount}
+${adminDiscountInfo}
 Start: ${this.formatDate(subscription.startDate)} at ${subscription.startTime}
 End: ${subscription.endTime}
 Expiry: ${expiryDate} ${expiryTime} (${expiryType})
@@ -421,6 +499,8 @@ Revenue: ₹${subscription.amount}
                     </td>
                     <td>
                         <div style="font-weight: 600; color: #059669;">₹${subscription.amount}</div>
+                        ${subscription.discount > 0 ? 
+                            `<div style="font-size: 11px; color: #dc2626; text-decoration: line-through;">₹${subscription.originalAmount} (${subscription.discount}% off)</div>` : ''}
                         ${subscription.planType === 'hourly' || subscription.planType === 'half-day' || subscription.planType === 'work-day' ? 
                             `<div style="font-size: 11px; color: #666;">${subscription.startTime} - ${subscription.endTime}</div>` : ''}
                     </td>
@@ -470,7 +550,10 @@ Revenue: ₹${subscription.amount}
                 'Plan Type': sub.planType,
                 'Billable Hours': calculation.billableHours,
                 'Rate Applied': calculation.rateApplied,
-                'Amount': sub.amount,
+                'Original Amount': sub.originalAmount || sub.amount,
+                'Discount (%)': sub.discount || 0,
+                'Discount Amount': sub.discount > 0 ? ((sub.originalAmount || sub.amount) * sub.discount / 100).toFixed(2) : 0,
+                'Final Amount': sub.amount,
                 'Start Date': this.formatDate(sub.startDate),
                 'Start Time': sub.startTime,
                 'End Time': sub.endTime,
@@ -529,6 +612,15 @@ Revenue: ₹${subscription.amount}
         // Clear manual end date fields
         document.getElementById('endDate').value = '';
         document.getElementById('endTimeManual').value = '';
+        // Clear discount fields
+        document.getElementById('discount').value = '';
+        document.getElementById('finalAmount').value = '';
+        // Reset discount field styling
+        const discountField = document.getElementById('discount');
+        discountField.disabled = false;
+        discountField.style.backgroundColor = '';
+        discountField.style.color = '';
+        discountField.placeholder = 'e.g., 10';
     }
 
     // Show notification
