@@ -49,25 +49,130 @@ class SimpleCRM {
         });
     }
 
-    // Plan Type Detection
+    // Parse time string to minutes (from your calculator)
+    parseTimeToMinutes(timeString) {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    // Calculate duration and billing plan (integrated from your calculator)
+    calculateDurationAndBilling(startTime, endTime) {
+        const startMinutes = this.parseTimeToMinutes(startTime);
+        const endMinutes = this.parseTimeToMinutes(endTime);
+        
+        // Calculate duration in minutes
+        const durationMinutes = endMinutes - startMinutes;
+        const durationHours = Math.floor(durationMinutes / 60);
+        const remainingMinutes = durationMinutes % 60;
+        
+        // Calculate billable hours (any partial hour counts as full hour)
+        const billableHours = Math.ceil(durationMinutes / 60);
+        
+        // Calculate billing plan and amount using your exact logic
+        let totalAmount, billingPlan, rateApplied;
+        
+        if (billableHours >= 10) {
+            // Full Day: 10+ hours = ₹600 (flat rate)
+            totalAmount = 600;
+            billingPlan = "full-day";
+            rateApplied = "₹600 (10+ hours)";
+        } else if (billableHours >= 8) {
+            // Work Day base (8 hours) + extra hours
+            const extraHours = billableHours - 8;
+            totalAmount = 500 + (extraHours * 75);
+            billingPlan = "work-day";
+            if (extraHours > 0) {
+                rateApplied = `₹500 (8 hrs) + ₹${extraHours * 75} (${extraHours} extra hr${extraHours > 1 ? 's' : ''})`;
+            } else {
+                rateApplied = "₹500 (8 hours)";
+            }
+        } else if (billableHours >= 5) {
+            // Half Day base (5 hours) + extra hours
+            const extraHours = billableHours - 5;
+            totalAmount = 300 + (extraHours * 75);
+            billingPlan = "half-day";
+            if (extraHours > 0) {
+                rateApplied = `₹300 (5 hrs) + ₹${extraHours * 75} (${extraHours} extra hr${extraHours > 1 ? 's' : ''})`;
+            } else {
+                rateApplied = "₹300 (5 hours)";
+            }
+        } else {
+            // Hourly: Less than 5 hours = ₹75 per hour
+            totalAmount = billableHours * 75;
+            billingPlan = "hourly";
+            rateApplied = `₹75 × ${billableHours} hour${billableHours > 1 ? 's' : ''}`;
+        }
+        
+        return {
+            durationMinutes,
+            durationHours,
+            remainingMinutes,
+            billableHours,
+            totalAmount,
+            billingPlan,
+            rateApplied
+        };
+    }
+
+    // Plan Type Detection (updated with your calculator logic)
     detectPlanType() {
         const startTime = document.getElementById('startTime').value;
         const endTime = document.getElementById('endTime').value;
         
         if (!startTime || !endTime) return;
 
-        const start = new Date(`2000-01-01T${startTime}`);
-        const end = new Date(`2000-01-01T${endTime}`);
-        const duration = (end - start) / (1000 * 60 * 60); // hours
+        const calculation = this.calculateDurationAndBilling(startTime, endTime);
+        
+        // Auto-fill the plan type and amount
+        document.getElementById('planType').value = calculation.billingPlan;
+        document.getElementById('amount').value = calculation.totalAmount;
+    }
 
-        let planType = '';
-        if (duration <= 2) planType = 'hourly';
-        else if (duration <= 4) planType = 'half-day';
-        else if (duration <= 8) planType = 'full-day';
-        else if (duration <= 24) planType = 'full-day';
-        else planType = 'monthly';
-
-        document.getElementById('planType').value = planType;
+    // Calculate expiry date based on plan type and start date/time
+    calculateExpiryDate(startDate, startTime, endTime, planType) {
+        const startDateTime = new Date(`${startDate}T${startTime}`);
+        
+        switch (planType) {
+            case 'hourly':
+                // For hourly plans, expiry is at the end time of the same day
+                return new Date(`${startDate}T${endTime}`);
+                
+            case 'half-day':
+                // Half day: 5 hours from start time
+                const halfDayExpiry = new Date(startDateTime);
+                halfDayExpiry.setHours(halfDayExpiry.getHours() + 5);
+                return halfDayExpiry;
+                
+            case 'work-day':
+                // Work day: 8 hours from start time
+                const workDayExpiry = new Date(startDateTime);
+                workDayExpiry.setHours(workDayExpiry.getHours() + 8);
+                return workDayExpiry;
+                
+            case 'full-day':
+                // Full day: 10 hours or more from start time
+                const fullDayExpiry = new Date(startDateTime);
+                fullDayExpiry.setHours(fullDayExpiry.getHours() + 10);
+                return fullDayExpiry;
+                
+            case 'weekly':
+                // Weekly: 6 days from start date
+                const weeklyExpiry = new Date(startDate);
+                weeklyExpiry.setDate(weeklyExpiry.getDate() + 6);
+                return weeklyExpiry;
+                
+            case 'monthly':
+                // Monthly: 30 days from start date
+                const monthlyExpiry = new Date(startDate);
+                monthlyExpiry.setDate(monthlyExpiry.getDate() + 30);
+                return monthlyExpiry;
+                
+            default:
+                // Default to 30 days for unknown plan types
+                const defaultExpiry = new Date(startDate);
+                defaultExpiry.setDate(defaultExpiry.getDate() + 30);
+                return defaultExpiry;
+        }
     }
 
     // Set default dates
@@ -83,16 +188,22 @@ class SimpleCRM {
 
     // Add Subscription
     addSubscription() {
+        const startDate = document.getElementById('startDate').value;
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        const planType = document.getElementById('planType').value;
+        
         const formData = {
             id: 'SUB-' + Date.now().toString().substr(-6),
             customerName: document.getElementById('customerName').value.trim(),
             whatsappNumber: document.getElementById('whatsappNumber').value.trim(),
             email: document.getElementById('email').value.trim(),
-            planType: document.getElementById('planType').value,
+            planType: planType,
             amount: parseFloat(document.getElementById('amount').value),
-            startDate: new Date(document.getElementById('startDate').value),
-            startTime: document.getElementById('startTime').value,
-            endTime: document.getElementById('endTime').value,
+            startDate: new Date(startDate),
+            startTime: startTime,
+            endTime: endTime,
+            expiryDate: this.calculateExpiryDate(startDate, startTime, endTime, planType),
             status: 'active',
             createdAt: new Date()
         };
@@ -147,6 +258,7 @@ class SimpleCRM {
         const subject = `🎉 New ${subscription.planType} Subscription - ${subscription.customerName}`;
         
         // Customer email
+        const expiryDate = subscription.expiryDate ? this.formatDate(new Date(subscription.expiryDate)) : 'N/A';
         const customerMessage = `
 Dear ${subscription.customerName},
 
@@ -157,6 +269,7 @@ Subscription Details:
 • Amount: ₹${subscription.amount}
 • Start Date: ${this.formatDate(subscription.startDate)}
 • Time: ${subscription.startTime} - ${subscription.endTime}
+• Expiry Date: ${expiryDate}
 
 We're excited to have you on board!
 
@@ -175,6 +288,7 @@ Plan: ${subscription.planType}
 Amount: ₹${subscription.amount}
 Start: ${this.formatDate(subscription.startDate)} at ${subscription.startTime}
 End: ${subscription.endTime}
+Expiry: ${expiryDate}
 
 Revenue: ₹${subscription.amount}
         `;
@@ -195,9 +309,23 @@ Revenue: ₹${subscription.amount}
     getSubscriptionStatus(subscription) {
         const now = new Date();
         const startDate = new Date(subscription.startDate);
-        const daysDiff = Math.ceil((now - startDate) / (1000 * 60 * 60 * 24));
         
-        if (daysDiff < 0) return 'pending';
+        // Check if subscription has started
+        if (now < startDate) return 'pending';
+        
+        // Use calculated expiry date if available, otherwise fallback to old logic
+        if (subscription.expiryDate) {
+            const expiryDate = new Date(subscription.expiryDate);
+            const timeUntilExpiry = expiryDate - now;
+            const hoursUntilExpiry = timeUntilExpiry / (1000 * 60 * 60);
+            
+            if (now > expiryDate) return 'expired';
+            if (hoursUntilExpiry <= 24) return 'expiring'; // Less than 24 hours remaining
+            return 'active';
+        }
+        
+        // Fallback for old subscriptions without expiry date
+        const daysDiff = Math.ceil((now - startDate) / (1000 * 60 * 60 * 24));
         if (daysDiff > 30) return 'expired';
         if (daysDiff > 25) return 'expiring';
         return 'active';
@@ -236,7 +364,7 @@ Revenue: ₹${subscription.amount}
         if (this.subscriptions.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="empty-state">
+                    <td colspan="8" class="empty-state">
                         <i class="fas fa-users"></i>
                         <p>No subscriptions yet. Click "Add Subscription" to get started.</p>
                     </td>
@@ -247,6 +375,10 @@ Revenue: ₹${subscription.amount}
 
         tbody.innerHTML = this.subscriptions.map(subscription => {
             const status = this.getSubscriptionStatus(subscription);
+            const expiryDate = subscription.expiryDate ? this.formatDate(new Date(subscription.expiryDate)) : 'N/A';
+            
+            // Format plan type display
+            const planDisplay = subscription.planType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
             
             return `
                 <tr>
@@ -255,11 +387,20 @@ Revenue: ₹${subscription.amount}
                         <div style="font-size: 12px; color: #718096;">${subscription.email}</div>
                     </td>
                     <td>
-                        <span class="status-badge ${subscription.planType}">${subscription.planType}</span>
+                        <span class="status-badge ${subscription.planType}">${planDisplay}</span>
                     </td>
-                    <td>₹${subscription.amount}</td>
+                    <td>
+                        <div style="font-weight: 600; color: #059669;">₹${subscription.amount}</div>
+                        ${subscription.planType === 'hourly' || subscription.planType === 'half-day' || subscription.planType === 'work-day' ? 
+                            `<div style="font-size: 11px; color: #666;">${subscription.startTime} - ${subscription.endTime}</div>` : ''}
+                    </td>
                     <td>${this.formatDate(subscription.startDate)}</td>
                     <td>${subscription.startTime} - ${subscription.endTime}</td>
+                    <td>
+                        <div style="font-size: 13px;">${expiryDate}</div>
+                        ${subscription.expiryDate ? 
+                            `<div style="font-size: 11px; color: #666;">${new Date(subscription.expiryDate).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</div>` : ''}
+                    </td>
                     <td>
                         <span class="status-badge ${status}">${status}</span>
                     </td>
@@ -285,17 +426,26 @@ Revenue: ₹${subscription.amount}
 
     // Export data
     exportData() {
-        const data = this.subscriptions.map(sub => ({
-            'Customer Name': sub.customerName,
-            'Email': sub.email,
-            'WhatsApp': sub.whatsappNumber,
-            'Plan Type': sub.planType,
-            'Amount': sub.amount,
-            'Start Date': this.formatDate(sub.startDate),
-            'Start Time': sub.startTime,
-            'End Time': sub.endTime,
-            'Status': this.getSubscriptionStatus(sub)
-        }));
+        const data = this.subscriptions.map(sub => {
+            // Calculate billing details for export
+            const calculation = this.calculateDurationAndBilling(sub.startTime, sub.endTime);
+            
+            return {
+                'Customer Name': sub.customerName,
+                'Email': sub.email,
+                'WhatsApp': sub.whatsappNumber,
+                'Plan Type': sub.planType,
+                'Billable Hours': calculation.billableHours,
+                'Rate Applied': calculation.rateApplied,
+                'Amount': sub.amount,
+                'Start Date': this.formatDate(sub.startDate),
+                'Start Time': sub.startTime,
+                'End Time': sub.endTime,
+                'Expiry Date': sub.expiryDate ? this.formatDate(new Date(sub.expiryDate)) : 'N/A',
+                'Expiry Time': sub.expiryDate ? new Date(sub.expiryDate).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'}) : 'N/A',
+                'Status': this.getSubscriptionStatus(sub)
+            };
+        });
 
         const csv = this.convertToCSV(data);
         const blob = new Blob([csv], { type: 'text/csv' });

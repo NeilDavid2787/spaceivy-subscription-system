@@ -60,10 +60,11 @@
                     <div class="form-group">
                         <label>Plan Type</label>
                         <select id="planType" required>
-                            <option value="">Select Plan</option>
-                            <option value="hourly">Hourly</option>
-                            <option value="half-day">Half Day</option>
-                            <option value="full-day">Full Day</option>
+                            <option value="">Select Plan (Auto-detected)</option>
+                            <option value="hourly">Hourly (₹75/hr)</option>
+                            <option value="half-day">Half Day (₹300 base + ₹75/hr extra)</option>
+                            <option value="work-day">Work Day (₹500 base + ₹75/hr extra)</option>
+                            <option value="full-day">Full Day (₹600 flat rate)</option>
                             <option value="weekly">Weekly</option>
                             <option value="monthly">Monthly</option>
                         </select>
@@ -90,6 +91,10 @@
                         <label>End Time</label>
                         <input type="time" id="endTime" required>
                     </div>
+                </div>
+                
+                <div style="background: #f0fdf4; border-left: 4px solid #059669; padding: 12px; margin-bottom: 20px; border-radius: 0 8px 8px 0; font-size: 13px; color: #666;">
+                    <strong>💡 Auto-Calculation:</strong> When you enter start and end times, the system will automatically calculate the billing plan and amount based on SpaceIvy's pricing structure.
                 </div>
                 
                 <div class="form-actions">
@@ -122,13 +127,14 @@
                             <th>Amount</th>
                             <th>Start Date</th>
                             <th>Time</th>
+                            <th>Expiry Date</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="subscriptionsTable">
                         <tr>
-                            <td colspan="7" class="empty-state">
+                            <td colspan="8" class="empty-state">
                                 <i class="fas fa-users"></i>
                                 <p>No subscriptions yet. Click "Add Subscription" to get started.</p>
                             </td>
