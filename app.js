@@ -397,7 +397,10 @@ Revenue: ₹${subscription.amount}
             return;
         }
 
-        tbody.innerHTML = this.subscriptions.map(subscription => {
+        // Sort subscriptions by creation date (newest first)
+        const sortedSubscriptions = this.subscriptions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        tbody.innerHTML = sortedSubscriptions.map(subscription => {
             const status = this.getSubscriptionStatus(subscription);
             const expiryDate = subscription.expiryDate ? this.formatDate(new Date(subscription.expiryDate)) : 'N/A';
             
