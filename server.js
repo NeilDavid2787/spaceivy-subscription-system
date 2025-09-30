@@ -3,9 +3,13 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const GoogleSheetsService = require('./google-sheets-service');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Google Sheets service
+const googleSheets = new GoogleSheetsService();
 
 // Middleware
 app.use(cors());
@@ -153,15 +157,27 @@ app.post('/api/subscriptions', (req, res) => {
         status || 'active', new Date().toISOString()
     ];
 
-    db.run(query, values, function(err) {
+    db.run(query, values, async function(err) {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
         }
         
+        // Sync to Google Sheets if configured
+        if (googleSheets.isConfigured()) {
+            try {
+                await googleSheets.addSubscription(req.body);
+                console.log('✅ Synced to Google Sheets');
+            } catch (sheetsError) {
+                console.error('⚠️ Google Sheets sync failed:', sheetsError.message);
+                // Don't fail the request if sheets sync fails
+            }
+        }
+        
         res.json({ 
             message: 'Subscription created successfully',
-            id: id
+            id: id,
+            googleSheetsSynced: googleSheets.isConfigured()
         });
     });
 });
@@ -213,7 +229,7 @@ app.delete('/api/subscriptions/:id', (req, res) => {
     const { id } = req.params;
     const query = 'DELETE FROM subscriptions WHERE id = ?';
 
-    db.run(query, [id], function(err) {
+    db.run(query, [id], async function(err) {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -224,7 +240,21 @@ app.delete('/api/subscriptions/:id', (req, res) => {
             return;
         }
         
-        res.json({ message: 'Subscription deleted successfully' });
+        // Sync to Google Sheets if configured
+        if (googleSheets.isConfigured()) {
+            try {
+                await googleSheets.deleteSubscription(id);
+                console.log('✅ Deleted from Google Sheets');
+            } catch (sheetsError) {
+                console.error('⚠️ Google Sheets delete failed:', sheetsError.message);
+                // Don't fail the request if sheets sync fails
+            }
+        }
+        
+        res.json({ 
+            message: 'Subscription deleted successfully',
+            googleSheetsSynced: googleSheets.isConfigured()
+        });
     });
 });
 
@@ -302,6 +332,60 @@ app.get('/api/stats', (req, res) => {
             }
         });
     });
+});
+
+// Google Sheets management endpoints
+app.get('/api/google-sheets/status', (req, res) => {
+    res.json({
+        configured: googleSheets.isConfigured(),
+        spreadsheetUrl: googleSheets.getSpreadsheetUrl()
+    });
+});
+
+app.post('/api/google-sheets/create', async (req, res) => {
+    try {
+        const result = await googleSheets.createSpreadsheet();
+        res.json({
+            message: 'Spreadsheet created successfully',
+            ...result
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/google-sheets/sync', async (req, res) => {
+    try {
+        // Get all subscriptions from database
+        const query = 'SELECT * FROM subscriptions ORDER BY created_at DESC';
+        
+        db.all(query, [], async (err, rows) => {
+            if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            
+            // Convert to proper format
+            const subscriptions = rows.map(row => ({
+                ...row,
+                startDate: new Date(row.start_date),
+                expiryDate: row.expiry_date ? new Date(row.expiry_date) : null,
+                createdAt: new Date(row.created_at)
+            }));
+            
+            try {
+                await googleSheets.syncAllSubscriptions(subscriptions);
+                res.json({
+                    message: `Synced ${subscriptions.length} subscriptions to Google Sheets`,
+                    spreadsheetUrl: googleSheets.getSpreadsheetUrl()
+                });
+            } catch (syncError) {
+                res.status(500).json({ error: syncError.message });
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Serve the main CRM page
