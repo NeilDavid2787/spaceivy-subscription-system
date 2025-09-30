@@ -192,6 +192,22 @@ class SimpleCRM {
         const startTime = document.getElementById('startTime').value;
         const endTime = document.getElementById('endTime').value;
         const planType = document.getElementById('planType').value;
+        const endDate = document.getElementById('endDate').value;
+        const endTimeManual = document.getElementById('endTimeManual').value;
+        
+        // Calculate expiry date - use manual end date if provided, otherwise auto-calculate
+        let expiryDate;
+        if (endDate) {
+            // Use manual end date
+            if (endTimeManual) {
+                expiryDate = new Date(`${endDate}T${endTimeManual}`);
+            } else {
+                expiryDate = new Date(`${endDate}T23:59:59`); // End of day if no time specified
+            }
+        } else {
+            // Auto-calculate based on plan type
+            expiryDate = this.calculateExpiryDate(startDate, startTime, endTime, planType);
+        }
         
         const formData = {
             id: 'SUB-' + Date.now().toString().substr(-6),
@@ -203,7 +219,9 @@ class SimpleCRM {
             startDate: new Date(startDate),
             startTime: startTime,
             endTime: endTime,
-            expiryDate: this.calculateExpiryDate(startDate, startTime, endTime, planType),
+            endDate: endDate || null, // Store manual end date if provided
+            endTimeManual: endTimeManual || null, // Store manual end time if provided
+            expiryDate: expiryDate,
             status: 'active',
             createdAt: new Date()
         };
@@ -259,6 +277,9 @@ class SimpleCRM {
         
         // Customer email
         const expiryDate = subscription.expiryDate ? this.formatDate(new Date(subscription.expiryDate)) : 'N/A';
+        const expiryTime = subscription.expiryDate ? new Date(subscription.expiryDate).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'}) : '';
+        const expiryType = (subscription.endDate || subscription.endTimeManual) ? 'Manually Set' : 'Auto-calculated';
+        
         const customerMessage = `
 Dear ${subscription.customerName},
 
@@ -269,7 +290,8 @@ Subscription Details:
 • Amount: ₹${subscription.amount}
 • Start Date: ${this.formatDate(subscription.startDate)}
 • Time: ${subscription.startTime} - ${subscription.endTime}
-• Expiry Date: ${expiryDate}
+• Expiry Date: ${expiryDate} ${expiryTime}
+• Expiry Type: ${expiryType}
 
 We're excited to have you on board!
 
@@ -288,7 +310,9 @@ Plan: ${subscription.planType}
 Amount: ₹${subscription.amount}
 Start: ${this.formatDate(subscription.startDate)} at ${subscription.startTime}
 End: ${subscription.endTime}
-Expiry: ${expiryDate}
+Expiry: ${expiryDate} ${expiryTime} (${expiryType})
+${subscription.endDate ? `Manual End Date: ${subscription.endDate}` : ''}
+${subscription.endTimeManual ? `Manual End Time: ${subscription.endTimeManual}` : ''}
 
 Revenue: ₹${subscription.amount}
         `;
@@ -380,6 +404,9 @@ Revenue: ₹${subscription.amount}
             // Format plan type display
             const planDisplay = subscription.planType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
             
+            // Check if expiry date was manually set
+            const isManualExpiry = subscription.endDate || subscription.endTimeManual;
+            
             return `
                 <tr>
                     <td>
@@ -400,6 +427,9 @@ Revenue: ₹${subscription.amount}
                         <div style="font-size: 13px;">${expiryDate}</div>
                         ${subscription.expiryDate ? 
                             `<div style="font-size: 11px; color: #666;">${new Date(subscription.expiryDate).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</div>` : ''}
+                        ${isManualExpiry ? 
+                            `<div style="font-size: 10px; color: #059669; font-weight: 500;">📅 Manual</div>` : 
+                            `<div style="font-size: 10px; color: #666;">⚡ Auto</div>`}
                     </td>
                     <td>
                         <span class="status-badge ${status}">${status}</span>
@@ -441,8 +471,11 @@ Revenue: ₹${subscription.amount}
                 'Start Date': this.formatDate(sub.startDate),
                 'Start Time': sub.startTime,
                 'End Time': sub.endTime,
+                'Manual End Date': sub.endDate || 'Auto-calculated',
+                'Manual End Time': sub.endTimeManual || 'Auto-calculated',
                 'Expiry Date': sub.expiryDate ? this.formatDate(new Date(sub.expiryDate)) : 'N/A',
                 'Expiry Time': sub.expiryDate ? new Date(sub.expiryDate).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'}) : 'N/A',
+                'Expiry Type': (sub.endDate || sub.endTimeManual) ? 'Manual' : 'Auto-calculated',
                 'Status': this.getSubscriptionStatus(sub)
             };
         });
@@ -490,6 +523,9 @@ Revenue: ₹${subscription.amount}
         document.getElementById('subscriptionForm').style.display = 'none';
         document.getElementById('addForm').reset();
         this.setDefaultDates();
+        // Clear manual end date fields
+        document.getElementById('endDate').value = '';
+        document.getElementById('endTimeManual').value = '';
     }
 
     // Show notification
