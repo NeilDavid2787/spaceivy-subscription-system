@@ -16,19 +16,39 @@ class SimpleCRM {
         this.render();
     }
 
-    // Data Management
-    loadData() {
+    // Data Management - API calls
+    async loadData() {
+        try {
+            const response = await fetch('/api/subscriptions');
+            const data = await response.json();
+            this.subscriptions = data.subscriptions.map(sub => ({
+                ...sub,
+                startDate: new Date(sub.startDate)
+            }));
+            console.log('✅ Loaded subscriptions from database');
+        } catch (error) {
+            console.error('❌ Error loading data:', error);
+            this.showNotification('Error loading data from server', 'error');
+            // Fallback to localStorage if API fails
+            this.loadFromLocalStorage();
+        }
+    }
+
+    async saveData() {
+        // No longer needed - data is saved directly to API
+        console.log('📝 Data saved to database via API');
+    }
+
+    // Fallback to localStorage
+    loadFromLocalStorage() {
         const saved = localStorage.getItem('spaceivy_subscriptions');
         if (saved) {
             this.subscriptions = JSON.parse(saved).map(sub => ({
                 ...sub,
                 startDate: new Date(sub.startDate)
             }));
+            this.showNotification('Loaded data from local backup', 'info');
         }
-    }
-
-    saveData() {
-        localStorage.setItem('spaceivy_subscriptions', JSON.stringify(this.subscriptions));
     }
 
     // Event Listeners
@@ -296,15 +316,34 @@ class SimpleCRM {
             return;
         }
 
-        this.subscriptions.push(formData);
-        this.saveData();
-        
-        // Send emails
-        this.sendEmails(formData);
-        
-        this.showNotification('Subscription added successfully!', 'success');
-        this.hideForm();
-        this.render();
+        // Save to database via API
+        try {
+            const response = await fetch('/api/subscriptions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save subscription');
+            }
+
+            // Add to local array for immediate display
+            this.subscriptions.unshift(formData);
+            
+            // Send emails
+            this.sendEmails(formData);
+            
+            this.showNotification('Subscription added successfully!', 'success');
+            this.hideForm();
+            this.render();
+            
+        } catch (error) {
+            console.error('❌ Error saving subscription:', error);
+            this.showNotification('Error saving subscription to database', 'error');
+        }
     }
 
     // Validate subscription
@@ -445,18 +484,30 @@ Revenue: ₹${subscription.amount}
     }
 
     // Render stats
-    renderStats() {
-        const totalRevenue = this.calculateRevenue();
-        const activeSubscriptions = this.subscriptions.filter(sub => 
-            this.getSubscriptionStatus(sub) === 'active'
-        ).length;
-        const expiringSoon = this.subscriptions.filter(sub => 
-            this.getSubscriptionStatus(sub) === 'expiring'
-        ).length;
+    async renderStats() {
+        try {
+            const response = await fetch('/api/stats');
+            const data = await response.json();
+            const stats = data.stats;
 
-        document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
-        document.getElementById('activeSubscriptions').textContent = activeSubscriptions;
-        document.getElementById('expiringSoon').textContent = expiringSoon;
+            document.getElementById('totalRevenue').textContent = `₹${stats.totalRevenue.toFixed(2)}`;
+            document.getElementById('activeSubscriptions').textContent = stats.activeSubscriptions;
+            document.getElementById('expiringSoon').textContent = stats.expiringSoon;
+        } catch (error) {
+            console.error('❌ Error loading stats:', error);
+            // Fallback to local calculation
+            const totalRevenue = this.calculateRevenue();
+            const activeSubscriptions = this.subscriptions.filter(sub => 
+                this.getSubscriptionStatus(sub) === 'active'
+            ).length;
+            const expiringSoon = this.subscriptions.filter(sub => 
+                this.getSubscriptionStatus(sub) === 'expiring'
+            ).length;
+
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+            document.getElementById('activeSubscriptions').textContent = activeSubscriptions;
+            document.getElementById('expiringSoon').textContent = expiringSoon;
+        }
     }
 
     // Render table
@@ -528,12 +579,26 @@ Revenue: ₹${subscription.amount}
     }
 
     // Remove subscription
-    removeSubscription(id) {
+    async removeSubscription(id) {
         if (confirm('Are you sure you want to remove this subscription?')) {
-            this.subscriptions = this.subscriptions.filter(sub => sub.id !== id);
-            this.saveData();
-            this.render();
-            this.showNotification('Subscription removed', 'info');
+            try {
+                const response = await fetch(`/api/subscriptions/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete subscription');
+                }
+
+                // Remove from local array
+                this.subscriptions = this.subscriptions.filter(sub => sub.id !== id);
+                this.render();
+                this.showNotification('Subscription removed', 'info');
+                
+            } catch (error) {
+                console.error('❌ Error removing subscription:', error);
+                this.showNotification('Error removing subscription from database', 'error');
+            }
         }
     }
 

@@ -1,158 +1,238 @@
-# 🚀 Spaceivy Subscription Billing System
+# 🚀 SpaceIvy CRM - Database Edition
 
-A complete subscription management application with automated notifications, built with vanilla HTML, CSS, and JavaScript.
+A powerful subscription management CRM for coworking spaces with database backend.
 
 ## ✨ Features
 
-- **Subscription Management**: Add, track, and manage customer subscriptions
-- **Automated Notifications**: Email and SMS reminders for expiring subscriptions
-- **Real-time Dashboard**: Visual statistics and subscription status tracking
-- **Data Persistence**: Local storage for data retention
-- **Time Simulation**: Demo mode with time advancement for testing
-- **Export Functionality**: Export subscription data as JSON
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **Modern UI**: Beautiful gradient design with smooth animations
+- **📊 Real-time Dashboard**: Track revenue, active subscriptions, and expiring contracts
+- **💰 Smart Billing**: Automatic calculation with SpaceIvy's stepped pricing structure
+- **📅 Flexible Expiry**: Auto-calculated or manual end dates
+- **💸 Discount System**: Percentage discounts for monthly plans only
+- **📱 Contact Management**: Easy access to customer phone numbers
+- **📈 Export & Analytics**: Comprehensive data export and reporting
+- **🗄️ Database Storage**: SQLite database for reliable data persistence
+
+## 🏗️ Architecture
+
+### Backend (Node.js + SQLite)
+- **Express.js** web server
+- **SQLite** database for data persistence
+- **RESTful API** for all operations
+- **CORS enabled** for frontend integration
+
+### Frontend (Vanilla JavaScript)
+- **Responsive design** with modern UI
+- **Real-time updates** via API calls
+- **Offline fallback** to localStorage
+- **Form validation** and user feedback
 
 ## 🚀 Quick Start
 
-### Option 1: Simple File Opening
-1. Open `index.html` in your web browser
-2. Start managing subscriptions immediately!
+### Prerequisites
+- Node.js (v14 or higher)
+- npm (Node Package Manager)
 
-### Option 2: Local Development Server
-1. Install dependencies:
+### Installation
+
+1. **Install Dependencies**
    ```bash
    npm install
    ```
 
-2. Start the development server:
+2. **Start the Server**
    ```bash
    npm start
    ```
-   or
+   
+   Or for development with auto-restart:
    ```bash
    npm run dev
    ```
 
-3. Open your browser to `http://localhost:3000`
+3. **Access Your CRM**
+   Open your browser and go to: `http://localhost:3000`
 
-## 📋 Usage
+## 📊 Database Management
 
-### Adding Subscriptions
-1. Fill out the subscription form with customer details
-2. Select subscription duration and plan type
-3. Click "Add Subscription" to save
+### Database Utilities
 
-### Managing Notifications
-- **Check Expiring**: Manually check for subscriptions expiring soon
-- **Advance Time**: Simulate time passing (useful for testing)
-- **Clear Notifications**: Clear the notification log
-- **Export Data**: Download subscription data as JSON
+The included `database-utils.js` provides powerful database management tools:
 
-### Dashboard Statistics
-- **Total Subscriptions**: Count of all active subscriptions
-- **Expiring Soon**: Subscriptions expiring within 7 days
-- **Monthly Revenue**: Total revenue from active subscriptions
-- **Notifications Sent**: Total notifications sent
+```bash
+# Migrate data from JSON backup to database
+node database-utils.js migrate ./backup.json
+
+# Export all data to JSON
+node database-utils.js export ./export.json
+
+# Backup database file
+node database-utils.js backup ./backup.db
+
+# Show database statistics
+node database-utils.js stats
+```
+
+### Data Migration from localStorage
+
+If you have existing data in localStorage, you can migrate it:
+
+1. Export your localStorage data as JSON
+2. Run the migration command:
+   ```bash
+   node database-utils.js migrate your-data.json
+   ```
+
+## 🗄️ Database Schema
+
+### Subscriptions Table
+```sql
+CREATE TABLE subscriptions (
+    id TEXT PRIMARY KEY,
+    customer_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    whatsapp_number TEXT NOT NULL,
+    plan_type TEXT NOT NULL,
+    original_amount REAL,
+    discount REAL DEFAULT 0,
+    amount REAL NOT NULL,
+    start_date TEXT NOT NULL,
+    start_time TEXT NOT NULL,
+    end_time TEXT NOT NULL,
+    end_date TEXT,
+    end_time_manual TEXT,
+    expiry_date TEXT,
+    status TEXT DEFAULT 'active',
+    created_at TEXT NOT NULL
+);
+```
+
+### Notifications Table
+```sql
+CREATE TABLE notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL,
+    type TEXT NOT NULL,
+    subscription_id TEXT,
+    message TEXT NOT NULL,
+    FOREIGN KEY (subscription_id) REFERENCES subscriptions (id)
+);
+```
+
+## 🔌 API Endpoints
+
+### Subscriptions
+- `GET /api/subscriptions` - Get all subscriptions
+- `GET /api/subscriptions/:id` - Get single subscription
+- `POST /api/subscriptions` - Create new subscription
+- `PUT /api/subscriptions/:id` - Update subscription
+- `DELETE /api/subscriptions/:id` - Delete subscription
+
+### Statistics
+- `GET /api/stats` - Get dashboard statistics
+
+### Notifications
+- `GET /api/notifications` - Get notifications
+- `POST /api/notifications` - Add notification
+
+## 💰 Billing Structure
+
+The CRM implements SpaceIvy's exact pricing structure:
+
+- **Hourly**: ₹75 per hour (any partial hour = full hour)
+- **Half Day**: ₹300 base (5 hours) + ₹75/hr for extra hours
+- **Work Day**: ₹500 base (8 hours) + ₹75/hr for extra hours
+- **Full Day**: ₹600 flat rate (10+ hours)
+- **Weekly**: 6 days from start date
+- **Monthly**: 30 days from start date
+
+### Discount System
+- **Monthly Plans Only**: Discount field only works for monthly subscriptions
+- **Percentage Based**: Enter discount as percentage (e.g., 10 for 10%)
+- **Automatic Calculation**: Final amount calculated in real-time
+- **Visual Feedback**: Original amount shown with strikethrough when discounted
 
 ## 🔧 Configuration
 
-### Notification Settings
-The system automatically sends notifications:
-- 7 days before expiry
-- 3 days before expiry
-- 1 day before expiry
-- On expiry day
+### Environment Variables
+- `PORT`: Server port (default: 3000)
+- `NODE_ENV`: Environment (development/production)
 
-### Plan Types
-- **Basic Plan**: Entry-level subscription
-- **Premium Plan**: Enhanced features
-- **Enterprise Plan**: Full-featured solution
-- **Custom Plan**: Tailored to specific needs
+### Database Location
+- Database file: `./spaceivy_crm.db`
+- Automatically created on first run
+- Backup regularly using the utility scripts
 
-## 📱 Responsive Design
+## 📱 Deployment
 
-The application is fully responsive and works on:
-- Desktop computers
-- Tablets
-- Mobile phones
-- Various screen sizes
+### Local Development
+```bash
+npm run dev
+```
 
-## 💾 Data Storage
+### Production Deployment
+```bash
+npm start
+```
 
-- All data is stored in browser's local storage
-- Data persists between browser sessions
-- Export functionality available for backup
-- No server required for basic functionality
+### Hostinger Deployment
+1. Upload all files to your Hostinger directory
+2. Run `npm install` on the server
+3. Start with `npm start`
+4. Configure your domain to point to the application
 
-## 🎨 Customization
+## 🔒 Data Security
 
-### Styling
-- Modify `styles.css` to change colors, fonts, and layout
-- CSS variables available for easy theme customization
-- Responsive breakpoints can be adjusted
+- **Local Database**: SQLite file stored on your server
+- **No External Dependencies**: All data stays on your infrastructure
+- **Regular Backups**: Use the utility scripts for data backup
+- **Export Options**: Multiple export formats for data portability
 
-### Functionality
-- Extend `app.js` to add new features
-- Modify notification timing in the `checkExpiringSubscriptions()` method
-- Add new plan types in the HTML form
+## 🛠️ Troubleshooting
 
-## 🔮 Future Enhancements
+### Common Issues
 
-- **Email Integration**: Real email sending via SMTP
-- **SMS Integration**: Real SMS notifications via Twilio
-- **Payment Processing**: Stripe/PayPal integration
-- **User Authentication**: Login and user management
-- **Database Integration**: PostgreSQL/MySQL support
-- **API Endpoints**: RESTful API for external integrations
-- **Advanced Analytics**: Revenue charts and reporting
-- **Bulk Operations**: Import/export multiple subscriptions
+1. **Database Connection Error**
+   - Check file permissions for database directory
+   - Ensure SQLite3 is properly installed
 
-## 🛠️ Technical Details
+2. **API Not Responding**
+   - Check if server is running on correct port
+   - Verify CORS settings for frontend access
 
-### Built With
-- **HTML5**: Semantic markup and modern features
-- **CSS3**: Flexbox, Grid, animations, and responsive design
-- **Vanilla JavaScript**: ES6+ features, classes, and modules
-- **Font Awesome**: Icons and visual elements
-- **Local Storage**: Client-side data persistence
+3. **Data Not Loading**
+   - Check browser console for API errors
+   - Verify database file exists and is readable
 
-### Browser Support
-- Chrome 60+
-- Firefox 55+
-- Safari 12+
-- Edge 79+
+### Logs
+- Server logs appear in the terminal where you started the server
+- Browser console shows frontend API call logs
+- Database operations are logged to console
 
-## 📄 License
+## 📈 Performance
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **SQLite**: Fast, lightweight database perfect for single-user CRM
+- **Indexed Queries**: Optimized database queries for quick data retrieval
+- **Efficient API**: RESTful endpoints with minimal overhead
+- **Caching**: Frontend caches data for smooth user experience
 
-## 🤝 Contributing
+## 🔄 Backup Strategy
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+1. **Daily Database Backup**
+   ```bash
+   node database-utils.js backup ./daily-backup.db
+   ```
+
+2. **Weekly JSON Export**
+   ```bash
+   node database-utils.js export ./weekly-export.json
+   ```
+
+3. **Automated Backups**: Set up cron jobs for regular backups
 
 ## 📞 Support
 
-For support and questions:
-- Create an issue on GitHub
-- Contact the development team
-- Check the documentation
-
-## 🎯 Roadmap
-
-- [ ] Real email/SMS integration
-- [ ] Payment processing
-- [ ] User authentication
-- [ ] Database backend
-- [ ] Mobile app
-- [ ] Advanced analytics
-- [ ] API development
-- [ ] Multi-tenant support
+For technical support or feature requests, please contact the development team.
 
 ---
 
-**Made with ❤️ by the Spaceivy Team**
+**SpaceIvy CRM** - Built with ❤️ for efficient subscription management
