@@ -492,7 +492,7 @@ Revenue: ₹${subscription.amount}
                 <tr>
                     <td>
                         <div style="font-weight: 500;">${subscription.customerName}</div>
-                        <div style="font-size: 12px; color: #718096;">${subscription.email}</div>
+                        <div style="font-size: 12px; color: #718096;">${subscription.whatsappNumber}</div>
                     </td>
                     <td>
                         <span class="status-badge ${subscription.planType}">${planDisplay}</span>
